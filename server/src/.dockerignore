@@ -1,0 +1,27 @@
+# Build outputs
+bin/
+obj/
+publish/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test results
+TestResults/
+coverage/
+
+# Secrets (don't ship to image)
+appsettings.Development.json
+appsettings.Local.json
+*.local.json

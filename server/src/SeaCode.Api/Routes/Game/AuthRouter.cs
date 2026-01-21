@@ -1,0 +1,24 @@
+using SeaCode.Domain.Constants;
+using SeaCode.Infra.Framework.Routes;
+
+namespace SeaCode.Api.Routes.Game;
+
+/// <summary>
+/// 认证路由
+/// </summary>
+public class AuthRouter : IGameRouterBase
+{
+    public void AddRoutes(RouteGroupBuilder group)
+    {
+        var auth = group.MapGroup("auth")
+            .WithGroupName(ApiGroups.Game)
+            .WithTags("认证");
+
+        auth.MapPost("login", () => Results.Ok(new { message = "TODO: 实现登录" }))
+            .WithSummary("玩家登录")
+            .AllowAnonymous();
+
+        auth.MapPost("logout", () => Results.Ok(new { message = "TODO: 实现登出" }))
+            .WithSummary("玩家登出");
+    }
+}
