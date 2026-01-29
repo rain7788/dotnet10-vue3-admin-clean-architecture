@@ -16,6 +16,7 @@ using Serilog;
 using Serilog.Events;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using SeaCode.Infra.Cache;
+using SwaggerSloop;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -129,6 +130,14 @@ services.AddSwaggerGen(options =>
             new List<string>()
         }
     });
+
+    // 加载 XML 注释文档
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath);
+    }
 });
 
 // ========== 构建应用 ==========
@@ -160,8 +169,10 @@ app.UseMiddleware<AuthorizationMiddleware>();
 if (!app.Environment.IsProduction())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(options =>
+    app.UseSwaggerSloop(options =>
     {
+        options.DocumentTitle = "SeaCode API";
+        options.DefaultTheme = SwaggerSloopTheme.Auto;
         options.SwaggerEndpoint($"/swagger/{ApiGroups.Admin}/swagger.json", "管理端");
         options.SwaggerEndpoint($"/swagger/{ApiGroups.Game}/swagger.json", "用户端");
         options.SwaggerEndpoint($"/swagger/{ApiGroups.Common}/swagger.json", "公共端");
