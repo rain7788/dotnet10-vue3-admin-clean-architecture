@@ -14,12 +14,12 @@ public class RequestContext
     public long Id { get; set; }
 
     /// <summary>
-    /// 玩家 ID（游戏场景下）
+    /// 用户 ID
     /// </summary>
-    public long PlayerId { get; set; }
+    public long UserId { get; set; }
 
     /// <summary>
-    /// 账号/名称
+    /// 名称
     /// </summary>
     public string? Name { get; set; }
 

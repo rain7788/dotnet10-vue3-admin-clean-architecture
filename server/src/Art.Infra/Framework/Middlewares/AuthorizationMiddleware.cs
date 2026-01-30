@@ -276,7 +276,7 @@ public class AuthorizationMiddleware
     private static void PopulateContext(RequestContext ctx, CachedUserInfo info)
     {
         ctx.Id = info.UserId ?? 0;
-        ctx.PlayerId = info.PlayerId ?? 0;
+        ctx.UserId = info.PlayerId ?? 0;
         ctx.Name = info.Name;
         ctx.Account = info.Account;
         ctx.ClientType = info.ClientType;
