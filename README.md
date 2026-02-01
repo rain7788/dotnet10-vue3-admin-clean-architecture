@@ -110,7 +110,7 @@ dotnet run
 #### 后端
 
 ```bash
-cd server
+cd server/src
 
 # 构建镜像
 docker build -t art-api .
