@@ -106,10 +106,17 @@
         <div class="art-card-sm my-5">
           <h1 class="p-4 text-xl font-normal border-b border-g-300">更改密码</h1>
 
-          <ElForm :model="pwdForm" class="box-border p-5" label-width="86px" label-position="top">
-            <ElFormItem label="当前密码" prop="password">
+          <ElForm
+            ref="pwdFormRef"
+            :model="pwdForm"
+            :rules="pwdRules"
+            class="box-border p-5"
+            label-width="86px"
+            label-position="top"
+          >
+            <ElFormItem label="当前密码" prop="oldPassword">
               <ElInput
-                v-model="pwdForm.password"
+                v-model="pwdForm.oldPassword"
                 type="password"
                 :disabled="!isEditPwd"
                 show-password
@@ -135,7 +142,13 @@
             </ElFormItem>
 
             <div class="flex-c justify-end [&_.el-button]:!w-27.5">
-              <ElButton type="primary" class="w-22.5" v-ripple @click="editPwd">
+              <ElButton
+                type="primary"
+                class="w-22.5"
+                v-ripple
+                :loading="pwdLoading"
+                @click="editPwd"
+              >
                 {{ isEditPwd ? '保存' : '编辑' }}
               </ElButton>
             </div>
@@ -148,6 +161,7 @@
 
 <script setup lang="ts">
   import { useUserStore } from '@/store/modules/user'
+  import { fetchChangePassword } from '@/api/system-manage'
   import type { FormInstance, FormRules } from 'element-plus'
 
   defineOptions({ name: 'UserCenter' })
@@ -159,6 +173,8 @@
   const isEditPwd = ref(false)
   const date = ref('')
   const ruleFormRef = ref<FormInstance>()
+  const pwdFormRef = ref<FormInstance>()
+  const pwdLoading = ref(false)
 
   /**
    * 用户信息表单
@@ -177,10 +193,26 @@
    * 密码修改表单
    */
   const pwdForm = reactive({
-    password: '123456',
-    newPassword: '123456',
-    confirmPassword: '123456'
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   })
+
+  const validateConfirmPassword = (
+    _rule: any,
+    value: string,
+    callback: (error?: Error) => void
+  ) => {
+    if (!value) {
+      callback(new Error('请再次输入新密码'))
+      return
+    }
+    if (value !== pwdForm.newPassword) {
+      callback(new Error('两次输入的新密码不一致'))
+      return
+    }
+    callback()
+  }
 
   /**
    * 表单验证规则
@@ -198,6 +230,15 @@
     mobile: [{ required: true, message: '请输入手机号码', trigger: 'blur' }],
     address: [{ required: true, message: '请输入地址', trigger: 'blur' }],
     sex: [{ required: true, message: '请选择性别', trigger: 'blur' }]
+  })
+
+  const pwdRules = reactive<FormRules>({
+    oldPassword: [{ required: true, message: '请输入当前密码', trigger: 'blur' }],
+    newPassword: [
+      { required: true, message: '请输入新密码', trigger: 'blur' },
+      { min: 6, message: '密码长度不能小于6位', trigger: 'blur' }
+    ],
+    confirmPassword: [{ required: true, validator: validateConfirmPassword, trigger: 'blur' }]
   })
 
   /**
@@ -241,7 +282,27 @@
   /**
    * 切换密码编辑状态
    */
-  const editPwd = () => {
-    isEditPwd.value = !isEditPwd.value
+  const editPwd = async () => {
+    if (!isEditPwd.value) {
+      isEditPwd.value = true
+      return
+    }
+    if (!pwdFormRef.value) return
+    const valid = await pwdFormRef.value.validate()
+    if (!valid) return
+    try {
+      pwdLoading.value = true
+      await fetchChangePassword({
+        oldPassword: pwdForm.oldPassword,
+        newPassword: pwdForm.newPassword
+      })
+      ElMessage.success('密码修改成功')
+      pwdForm.oldPassword = ''
+      pwdForm.newPassword = ''
+      pwdForm.confirmPassword = ''
+      isEditPwd.value = false
+    } finally {
+      pwdLoading.value = false
+    }
   }
 </script>

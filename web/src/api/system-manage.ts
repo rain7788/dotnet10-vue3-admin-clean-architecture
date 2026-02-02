@@ -26,6 +26,14 @@ export function fetchDeleteUser(id: string) {
   })
 }
 
+// 修改密码
+export function fetchChangePassword(data: { oldPassword: string; newPassword: string }) {
+  return request.post<any>({
+    url: '/admin/system/user/password',
+    data
+  })
+}
+
 // ===================== 角色管理 =====================
 
 // 获取角色列表
