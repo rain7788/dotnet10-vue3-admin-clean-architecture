@@ -18,7 +18,7 @@ art-design-pro 前端， NET 10 + **Minimal API** 后端，采用清洁架构设
 ## 📁 项目结构
 
 ```
-server/src/
+backend/
 ├── Art.Api/              # API 层 - 路由定义、中间件配置
 │   ├── Routes/           # 路由定义（Admin/App/Common）
 │   ├── Hosting/          # 启动配置
@@ -73,7 +73,7 @@ server/src/
 
 ### 配置
 
-编辑 `server/src/Art.Api/appsettings.json`:
+编辑 `backend/Art.Api/appsettings.json`:
 
 ```json
 {
@@ -99,7 +99,7 @@ cd database
 ### 运行
 
 ```bash
-cd server/src/Art.Api
+cd backend/Art.Api
 dotnet run
 ```
 
@@ -110,7 +110,7 @@ dotnet run
 #### 后端
 
 ```bash
-cd server/src
+cd backend
 
 # 构建镜像
 docker build -t art-api .
@@ -127,13 +127,13 @@ docker run -d -p 5000:8080 -e ASPNETCORE_ENVIRONMENT=Development art-api
 #### 前端
 
 ```bash
-cd web
+cd web-admin
 
 # 构建镜像
-docker build -t art-web .
+docker build -t art-admin .
 
 # 运行（通过环境变量指定 API 地址）
-docker run -d -p 80:80 -e VITE_API_URL="https://api.example.com" art-web
+docker run -d -p 80:80 -e VITE_API_URL="https://api.example.com" art-admin
 ```
 
 | 环境变量                 | 说明          | 示例                         |

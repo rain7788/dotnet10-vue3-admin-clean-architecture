@@ -24,7 +24,7 @@
 ## 📁 关键文件索引 (先查这里)
 
 ```
-server/src/
+backend/
 ├── Art.Api/
 │   ├── Program.cs                    # 启动配置、中间件注册
 │   ├── Routes/Admin/                 # 后台管理路由
@@ -44,7 +44,7 @@ server/src/
 │   ├── Framework/RequestContext.cs   # 当前用户上下文
 │   └── Common/                       # 工具类
 
-web/src/
+web-admin/src/
 ├── api/                              # API 封装
 ├── views/                            # 页面组件
 ├── router/                           # 路由配置
@@ -165,10 +165,10 @@ INSERT INTO sys_menu (id, parent_id, name, code, path, component, icon, sort, is
 
 ```bash
 # 后端启动 (端口 5055，Swagger: /swagger)
-cd server/src/Art.Api && ASPNETCORE_ENVIRONMENT=Development dotnet run
+cd backend/Art.Api && ASPNETCORE_ENVIRONMENT=Development dotnet run
 
 # 前端启动
-cd web && pnpm dev
+cd web-admin && pnpm dev
 
 # 数据库执行 SQL
 mysql -h localhost -P 3306 -u root -p aaaaaa art < script.sql
