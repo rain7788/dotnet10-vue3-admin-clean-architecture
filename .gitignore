@@ -18,6 +18,9 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
+# 不忽略前端系统日志视图
+!web-admin/src/views/system/log/
+
 # Visual Studio cache/options directory
 .vs/
 
