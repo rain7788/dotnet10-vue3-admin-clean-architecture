@@ -190,4 +190,8 @@ mysql -h localhost -P 3306 -u root -p aaaaaa art < script.sql
 | `database/seeds/*.sql`                  | 初始数据               |
 | `database/migrations/yyyyMMdd_desc.sql` | 增量变更脚本           |
 
-**注意**: 数据库层面不设外键约束
+**⚠️ 重要**:
+
+- 创建增量脚本时，必须同步更新全量脚本 `schemas/*.sql`
+- 修改初始数据时，必须同步更新 `seeds/*.sql`
+- 数据库层面不设外键约束
