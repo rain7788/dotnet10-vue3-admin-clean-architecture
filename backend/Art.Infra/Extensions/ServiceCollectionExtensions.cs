@@ -1,7 +1,8 @@
 using System.Reflection;
+using Art.Infra.Framework;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Art.Infra.Framework;
+namespace Art.Infra.Extensions;
 
 /// <summary>
 /// 服务注入扩展

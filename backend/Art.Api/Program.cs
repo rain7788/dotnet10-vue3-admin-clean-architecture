@@ -17,6 +17,7 @@ using Serilog.Events;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Art.Infra.Cache;
 using SwaggerSloop;
+using Art.Infra.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
