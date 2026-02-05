@@ -4,7 +4,7 @@
     tabStyle === 'tab-card' ? 'py-1 border-b border-[var(--art-card-border)]' : '',
     tabStyle === 'tab-google' ? 'pt-1 pb-0 border-b border-[var(--art-card-border)]' : ''
   ]">
-    <div class="w-full overflow-hidden" ref="scrollRef">
+    <div class="flex-1 min-w-0 overflow-hidden" ref="scrollRef">
       <ul class="float-left whitespace-nowrap !bg-transparent flex" :class="[tabStyle === 'tab-google' ? 'pl-1' : '']"
         ref="tabsRef" :style="{
           transform: `translateX(${scrollState.translateX}px)`,
@@ -14,12 +14,12 @@
           item.path === activeTab ? 'activ-tab !text-theme' : 'text-g-600 dark:text-g-800',
           tabStyle === 'tab-google' ? 'google-tab relative !h-8 !leading-8 !border-none' : ''
         ]" :style="{
-            padding: item.fixedTab ? '0 10px' : '0 8px 0 12px',
-            borderRadius:
-              tabStyle === 'tab-google'
-                ? 'calc(var(--custom-radius) / 2.5 + 4px) !important'
-                : 'calc(var(--custom-radius) / 2.5 + 2px) !important'
-          }" v-for="(item, index) in list" :key="item.path" :ref="item.path" :id="`scroll-li-${index}`"
+          padding: item.fixedTab ? '0 10px' : '0 8px 0 12px',
+          borderRadius:
+            tabStyle === 'tab-google'
+              ? 'calc(var(--custom-radius) / 2.5 + 4px) !important'
+              : 'calc(var(--custom-radius) / 2.5 + 2px) !important'
+        }" v-for="(item, index) in list" :key="item.path" :ref="item.path" :id="`scroll-li-${index}`"
           @click="clickTab(item)" @contextmenu.prevent="(e: MouseEvent) => showMenu(e, item.path)">
           <ArtSvgIcon v-show="item.icon" :icon="item.icon" class="text-base mr-1 group-hover:text-theme"
             :class="item.path === activeTab ? 'text-theme' : 'text-g-600'" />
