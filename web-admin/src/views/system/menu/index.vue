@@ -333,7 +333,9 @@ const handleAddMenu = (): void => {
  * 添加权限按钮
  */
 const handleAddAuth = (row: any): void => {
-  dialogType.value = 'button'
+  // 一级菜单默认添加菜单，其他默认添加按钮
+  const isTopLevelMenu = !row.parentId
+  dialogType.value = isTopLevelMenu ? 'menu' : 'button'
   editData.value = null
   currentParentMenu.value = row
   lockMenuType.value = false
