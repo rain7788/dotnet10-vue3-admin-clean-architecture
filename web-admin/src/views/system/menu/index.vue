@@ -367,17 +367,19 @@ const handleEditAuth = (row: any): void => {
  */
 const handleSubmit = async (formData: any): Promise<void> => {
   try {
-    if (dialogType.value === 'menu') {
-      await fetchUpdateMenu(formData)
-      ElMessage.success(formData.id ? '菜单更新成功' : '菜单添加成功')
+    // 使用提交数据中的 type 字段判断，而不是 dialogType
+    const { type, ...data } = formData
+    if (type === 'menu') {
+      await fetchUpdateMenu(data)
+      ElMessage.success(data.id ? '菜单更新成功' : '菜单添加成功')
     } else {
       // 权限按钮
       const permData = {
-        ...formData,
+        ...data,
         menuId: currentParentMenu.value?.id || editData.value?.menuId
       }
       await fetchUpdatePermission(permData)
-      ElMessage.success(formData.id ? '权限更新成功' : '权限添加成功')
+      ElMessage.success(data.id ? '权限更新成功' : '权限添加成功')
     }
     getMenuList()
   } catch (error) {

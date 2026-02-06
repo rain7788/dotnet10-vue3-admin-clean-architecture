@@ -317,9 +317,10 @@ const handleSubmit = async (): Promise<void> => {
     if (form.menuType === 'menu') {
       // 提交菜单数据
       emit('submit', {
+        type: 'menu',
         id: form.id || undefined,
         name: form.name,
-        parentId: form.parentId || undefined,
+        parentId: form.parentId || props.parentMenu?.id || undefined,
         code: form.code,
         path: form.path,
         component: form.component,
@@ -340,6 +341,7 @@ const handleSubmit = async (): Promise<void> => {
     } else {
       // 提交权限数据
       emit('submit', {
+        type: 'button',
         id: form.permId || undefined,
         name: form.permName,
         code: form.permCode,
