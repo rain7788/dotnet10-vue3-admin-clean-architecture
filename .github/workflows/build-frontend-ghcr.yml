@@ -39,3 +39,17 @@ jobs:
             ghcr.io/rain7788/art-web-admin:sha-${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to k3s
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: root
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            k3s kubectl -n apps rollout restart deploy art-web-admin
+            k3s kubectl -n apps rollout status deploy art-web-admin --timeout=120s
