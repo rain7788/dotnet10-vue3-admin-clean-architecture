@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: art-web-admin
+  namespace: apps
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  selector:
+    app: art-web-admin
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: art-web-admin
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: art-web-admin
+  template:
+    metadata:
+      labels:
+        app: art-web-admin
+    spec:
+      containers:
+        - name: art-web-admin
+          image: ghcr.io/rain7788/art-web-admin:latest
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: VITE_API_URL
+              value: https://api.aftbay.com
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
