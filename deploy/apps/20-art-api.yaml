@@ -46,14 +46,12 @@ spec:
                   name: art-api-conn
                   key: ConnectionStrings__Redis
           readinessProbe:
-            httpGet:
-              path: /health
+            tcpSocket:
               port: 80
             initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
-            httpGet:
-              path: /health
+            tcpSocket:
               port: 80
             initialDelaySeconds: 30
             periodSeconds: 20
