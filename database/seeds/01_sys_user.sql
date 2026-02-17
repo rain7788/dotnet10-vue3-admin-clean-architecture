@@ -22,9 +22,7 @@ INSERT INTO `sys_role` (`id`, `name`, `code`, `description`, `status`) VALUES
 
 -- 初始化菜单数据
 INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `code`, `path`, `component`, `icon`, `sort`, `is_visible`, `status`) VALUES
-(1000000000001000, NULL, '仪表盘', 'dashboard', '/dashboard', '/index/index', 'ri:dashboard-line', 3, 1, 1),
-(1000000000001001, 1000000000001000, '工作台', 'console', 'console', '/dashboard/console', NULL, 1, 1, 1),
-(1000000000001002, 1000000000001000, '分析页', 'analysis', 'analysis', '/dashboard/analysis', NULL, 2, 1, 1),
+(1000000000001001, NULL, '工作台', 'console', '/dashboard/console', '/dashboard/console', 'ri:dashboard-line', 1, 1, 1),
 (1000000000002000, NULL, '系统管理', 'system', '/system', '/index/index', 'ri:settings-line', 90, 1, 1),
 (1000000000002001, 1000000000002000, '用户管理', 'user', 'user', '/system/user', NULL, 1, 1, 1),
 (1000000000002002, 1000000000002000, '角色管理', 'role', 'role', '/system/role', NULL, 2, 1, 1),
@@ -48,7 +46,7 @@ INSERT INTO `sys_user_role` (`user_id`, `role_id`) VALUES (1000000000000001, 100
 
 -- 为超管分配所有菜单
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES
-(1000000000000001, 1000000000001000), (1000000000000001, 1000000000001001), (1000000000000001, 1000000000001002),
+(1000000000000001, 1000000000001001),
 (1000000000000001, 1000000000002000), (1000000000000001, 1000000000002001), (1000000000000001, 1000000000002002), (1000000000000001, 1000000000002003), (1000000000000001, 1000000000002004);
 
 -- 为超管分配所有权限
