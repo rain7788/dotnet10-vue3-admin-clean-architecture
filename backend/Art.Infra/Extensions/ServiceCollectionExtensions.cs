@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AutoDependencyInjection(this IServiceCollection services, params Assembly[] assemblies)
     {
         var serviceTypes = GetTargetAssemblies(assemblies)
-            .SelectMany(a => a.GetExportedTypes())
+            .SelectMany(GetLoadableExportedTypes)
             .Where(IsServiceType)
             .Distinct();
 
@@ -28,10 +28,57 @@ public static class ServiceCollectionExtensions
     }
 
     private static IEnumerable<Assembly> GetTargetAssemblies(Assembly[] assemblies)
-        => assemblies.Length > 0
-            ? assemblies
-            : AppDomain.CurrentDomain.GetAssemblies()
-                .Where(a => a.FullName?.StartsWith("Art") == true);
+    {
+        if (assemblies.Length > 0)
+        {
+            return assemblies;
+        }
+
+        // 默认：自动扫描所有 Art.* 程序集。
+        // 仅依赖 AppDomain.CurrentDomain.GetAssemblies() 会漏掉“尚未加载”的引用程序集，
+        // 从而导致 [Service] 标注的类型未注册（例如 Minimal API 的 service 参数变 UNKNOWN）。
+        var loaded = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(a => a.FullName?.StartsWith("Art") == true)
+            .ToList();
+
+        var entry = Assembly.GetEntryAssembly();
+        if (entry is null)
+        {
+            return loaded;
+        }
+
+        var referenced = entry.GetReferencedAssemblies()
+            .Where(a => a.Name?.StartsWith("Art") == true)
+            .Select(a =>
+            {
+                try
+                {
+                    return Assembly.Load(a);
+                }
+                catch
+                {
+                    return null;
+                }
+            })
+            .OfType<Assembly>()
+            .ToList();
+
+        return loaded
+            .Concat(referenced)
+            .DistinctBy(a => a.FullName);
+    }
+
+    private static IEnumerable<Type> GetLoadableExportedTypes(Assembly assembly)
+    {
+        try
+        {
+            return assembly.GetExportedTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            return ex.Types.Where(t => t is not null).Cast<Type>();
+        }
+    }
 
     private static bool IsServiceType(Type type)
         => type is { IsClass: true, IsAbstract: false }
