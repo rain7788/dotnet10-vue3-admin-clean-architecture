@@ -149,6 +149,7 @@ var list = await _db.SysUser.AsExpandable().Where(predicate).ToListAsync();
 1. **API 必须封装** - 在 `src/api/` 下，禁止 view 里直接写请求
 2. **类型可用 any** - 对接期用 `ref<any[]>([])` 避免阻塞，稳定后再补
 3. **分页参数** - `{ pageIndex, pageSize }` → `{ items, total }`
+4. **禁止重复弹窗** - `src/utils/http` 已有全局错误拦截弹窗（`ElMessage.error`），页面 `catch` 块中 **禁止再次** `ElMessage.error()`，否则同一错误会弹出两次。正确做法：`catch` 里只做状态还原或 `console.error`，不要手动弹错误提示
 
 ### 路由与菜单（后端）
 

@@ -21,4 +21,9 @@ public static class CacheKeys
     /// Demo：消息队列（Redis List）
     /// </summary>
     public static string DemoMessageQueue => $"{Prefix}demo:mq";
+
+    /// <summary>
+    /// Demo：队列接口限流计数器
+    /// </summary>
+    public static string DemoQueueRateLimit => $"{Prefix}demo:mq:rate";
 }

@@ -17,7 +17,7 @@ public class DemoModeMiddleware
     /// <summary>
     /// 不拦截的路径关键词（登录、登出、Token 刷新、分页查询）
     /// </summary>
-    private static readonly string[] WhitelistKeywords = ["/login", "/logout", "/token/refresh", "/list"];
+    private static readonly string[] WhitelistKeywords = ["/login", "/logout", "/token/refresh", "/list", "/demo/queue"];
 
     public DemoModeMiddleware(RequestDelegate next, IConfiguration configuration)
     {

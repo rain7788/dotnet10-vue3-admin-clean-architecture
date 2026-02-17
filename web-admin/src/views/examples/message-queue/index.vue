@@ -114,7 +114,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { fetchEnqueueMessage, fetchQueueStatus } from '@/api/demo'
+import { fetchEnqueueMessage, fetchBatchEnqueueMessage, fetchQueueStatus } from '@/api/demo'
 
 const messageInput = ref('')
 const queueLength = ref(0)
@@ -135,8 +135,8 @@ const handleEnqueue = async () => {
         ElMessage.success('消息已入队')
         messageInput.value = ''
         await refreshQueueStatus()
-    } catch (error: any) {
-        ElMessage.error(error.message || '入队失败')
+    } catch {
+        // 全局拦截器已处理错误弹窗
     } finally {
         sending.value = false
     }
@@ -159,19 +159,14 @@ const refreshQueueStatus = async () => {
 const handleBatchSend = async (count: number) => {
     sending.value = true
     try {
-        const promises = []
-        for (let i = 1; i <= count; i++) {
-            promises.push(
-                fetchEnqueueMessage({
-                    message: `批量测试消息 ${i}/${count} - ${new Date().toLocaleTimeString()}`
-                })
-            )
-        }
-        await Promise.all(promises)
+        const messages = Array.from({ length: count }, (_, i) =>
+            `批量测试消息 ${i + 1}/${count} - ${new Date().toLocaleTimeString()}`
+        )
+        await fetchBatchEnqueueMessage({ messages })
         ElMessage.success(`已批量发送 ${count} 条消息`)
         await refreshQueueStatus()
-    } catch (error: any) {
-        ElMessage.error(error.message || '批量发送失败')
+    } catch {
+        // 全局拦截器已处理错误弹窗
     } finally {
         sending.value = false
     }

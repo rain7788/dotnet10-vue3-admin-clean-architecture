@@ -82,7 +82,7 @@ INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `code`, `path`, `component`, 
 -- 运维管理
 (1000000000007000, NULL, '运维管理', 'safeguard', '/safeguard', '/index/index', 'ri:shield-check-line', 80, 1, 1),
 (1000000000007001, 1000000000007000, '服务器管理', 'server', 'server', '/safeguard/server', 'ri:hard-drive-3-line', 1, 1, 1),
-(1891234567890123456, NULL, '后端示例', 'Demo', '/demo', '', 'ri:flask-line', 999, 1, 1),
+(1891234567890123456, NULL, '后端示例', 'Demo', '/demo', '/index/index', 'ri:flask-line', 999, 1, 1),
 (1891234567890123457, 1891234567890123456, '消息队列', 'MessageQueue', '/demo/message-queue', '/examples/message-queue/index', 'ri:mail-send-line', 1, 1, 1);
 
 -- 设置工作台固定标签
