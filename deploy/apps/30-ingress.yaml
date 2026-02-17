@@ -47,3 +47,28 @@ spec:
                 name: art-web-admin
                 port:
                   number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: art-docs
+  namespace: apps
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - aftbay.com
+      secretName: docs-tls
+  rules:
+    - host: aftbay.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: art-docs
+                port:
+                  number: 80
