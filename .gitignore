@@ -172,3 +172,5 @@ Thumbs.db
 # IDE
 *.sublime-workspace
 *.sublime-project
+
+cankao/
