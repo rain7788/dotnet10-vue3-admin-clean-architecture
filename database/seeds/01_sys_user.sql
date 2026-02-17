@@ -82,8 +82,6 @@ INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `code`, `path`, `component`, 
 -- 运维管理
 (1000000000007000, NULL, '运维管理', 'safeguard', '/safeguard', '/index/index', 'ri:shield-check-line', 80, 1, 1),
 (1000000000007001, 1000000000007000, '服务器管理', 'server', 'server', '/safeguard/server', 'ri:hard-drive-3-line', 1, 1, 1),
--- 更新日志
-(1000000000008001, NULL, '更新日志', 'change-log', '/change/log', '/change/log', 'ri:gamepad-line', 95, 1, 1);
 
 -- 设置工作台固定标签
 UPDATE `sys_menu` SET `fixed_tab` = 1 WHERE `id` = 1000000000001001;
