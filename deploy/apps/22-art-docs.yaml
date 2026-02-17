@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: art-docs
+  namespace: apps
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  selector:
+    app: art-docs
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: art-docs
+  namespace: apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: art-docs
+  template:
+    metadata:
+      labels:
+        app: art-docs
+    spec:
+      containers:
+        - name: art-docs
+          image: ghcr.io/rain7788/art-docs:latest
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
