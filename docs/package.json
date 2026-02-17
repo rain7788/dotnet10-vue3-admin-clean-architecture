@@ -1,0 +1,16 @@
+{
+  "name": "art-admin-docs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Art Admin documentation site",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "license": "MIT",
+  "packageManager": "pnpm@10.28.0",
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  }
+}
