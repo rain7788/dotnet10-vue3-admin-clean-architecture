@@ -148,12 +148,24 @@ var list = await _db.SysUser.AsExpandable().Where(predicate).ToListAsync();
 2. **类型可用 any** - 对接期用 `ref<any[]>([])` 避免阻塞，稳定后再补
 3. **分页参数** - `{ pageIndex, pageSize }` → `{ items, total }`
 
-### 枚举字典
+### 路由与菜单（后端）
 
-```typescript
+- **项目统一使用后端路由**（数据库 `sys_menu` 配置）驱动菜单与权限。
+- **禁止在前端新增/维护静态路由表**：不要新增/修改 `asyncRoutes.ts`、`routesAlias.ts` 这类“写死路由”的文件来适配新页面。
+- 开发新页面时，必须同步生成“添加菜单”的 SQL（建议新增到 `database/migrations/yyyyMMdd_desc.sql`），用于初始化菜单、path、component、权限标识等。
+
+### 枚举
+
+- **固定枚举**：前端 `src/enums/` 定义（`enum` 或固定 options 常量），在页面中直接转成下拉选项使用。
+- **动态枚举**：通过 `getEnumOptions('枚举类名')` 从后端获取（`src/utils/dict.ts` 内部已做 `sessionStorage` + 内存缓存，避免重复请求）。
+
+示例（推荐写法）：
+
+```ts
+// 动态枚举
 import { getEnumOptions } from "@/utils/dict";
+
 const statusOptions = await getEnumOptions("ActiveStatus");
-// 自动缓存到 SessionStorage
 ```
 
 ### 新增页面必须插入菜单
