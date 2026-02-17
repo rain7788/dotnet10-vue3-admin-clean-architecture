@@ -200,7 +200,7 @@
             <div class="flex-1 min-w-0">
               <p class="m-0 overflow-hidden font-medium text-ellipsis whitespace-nowrap">{{
                 row.userName
-                }}</p>
+              }}</p>
               <p class="m-0 mt-1 overflow-hidden text-xs text-g-700 text-ellipsis whitespace-nowrap">{{ row.userEmail }}
               </p>
             </div>
@@ -783,7 +783,7 @@ const handleSelectionChange = (selection: UserListItem[]) => {
 
 const handleRowClick = (row: UserListItem) => {
   console.log('行点击:', row)
-  logEvent('行点击', `点击了用户: ${row.userName}`)
+  logEvent('行点击', `点击了用户: ${row.username}`)
 }
 
 /**
@@ -928,7 +928,7 @@ const handleAdd = () => {
 }
 
 const handleEdit = (row: UserListItem) => {
-  ElMessage.success(`编辑用户 ${row.userName} 成功`)
+  ElMessage.success(`编辑用户 ${row.username} 成功`)
   setTimeout(() => {
     refreshUpdate()
   }, 1000)
@@ -936,7 +936,7 @@ const handleEdit = (row: UserListItem) => {
 
 const handleDelete = async (row: UserListItem) => {
   try {
-    await ElMessageBox.confirm(`确定要删除用户 ${row.userName} 吗？`, '警告', {
+    await ElMessageBox.confirm(`确定要删除用户 ${row.username} 吗？`, '警告', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
@@ -952,7 +952,7 @@ const handleDelete = async (row: UserListItem) => {
 }
 
 const handleView = (row: UserListItem) => {
-  ElMessage.info(`查看用户 ${row.userName}`)
+  ElMessage.info(`查看用户 ${row.username}`)
 }
 
 const handleBatchDelete = async () => {

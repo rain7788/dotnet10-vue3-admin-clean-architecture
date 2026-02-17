@@ -17,7 +17,7 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { useUserStore } from '@/store/modules/user'
 import { ApiStatus } from './status'
-import { HttpError, handleError, showError, showSuccess } from './error'
+import { HttpError, handleError, showError, showSuccess, ErrorResponse } from './error'
 import { $t } from '@/locales'
 
 /** 请求配置常量 */
@@ -107,7 +107,7 @@ axiosInstance.interceptors.response.use(
 
     if (status === ApiStatus.unauthorized && originalRequest && !originalRequest._retry) {
       if (originalRequest.skipAuthRefresh) {
-        return Promise.reject(handleError(error))
+        return Promise.reject(handleError(error as AxiosError<ErrorResponse>))
       }
 
       try {
@@ -122,7 +122,7 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    return Promise.reject(handleError(error))
+    return Promise.reject(handleError(error as AxiosError<ErrorResponse>))
   }
 )
 
@@ -210,8 +210,8 @@ async function request<T = any>(config: ExtendedAxiosRequestConfig): Promise<T> 
     const res = await axiosInstance.request<T>(config)
 
     // 显示成功消息
-    if (config.showSuccessMessage && res.data.msg) {
-      showSuccess(res.data.msg)
+    if (config.showSuccessMessage && (res.data as any)?.msg) {
+      showSuccess((res.data as any).msg)
     }
 
     return res.data as T
@@ -238,10 +238,10 @@ async function refreshAccessToken(): Promise<string> {
     const response = await axiosInstance.post<{ token: string; refreshToken: string }>(
       '/admin/system/user/token/refresh',
       { refreshToken },
-      { skipAuthRefresh: true }
+      { skipAuthRefresh: true } as ExtendedAxiosRequestConfig
     )
 
-    const data = response.data
+    const data = response.data as { token: string; refreshToken: string }
     if (!data?.token) {
       throw createHttpError($t('httpMsg.unauthorized'), ApiStatus.unauthorized)
     }

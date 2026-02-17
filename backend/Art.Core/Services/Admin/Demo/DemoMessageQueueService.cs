@@ -30,9 +30,26 @@ public class DemoMessageQueueService
         _cache.LPush(CacheKeys.DemoMessageQueue, message);
         return Task.CompletedTask;
     }
+
+    public Task<DemoQueueStatusResponse> GetQueueStatusAsync()
+    {
+        var length = _cache.LLen(CacheKeys.DemoMessageQueue);
+        return Task.FromResult(new DemoQueueStatusResponse
+        {
+            QueueLength = length
+        });
+    }
 }
 
 public class DemoEnqueueMessageRequest
 {
     public string? Message { get; set; }
+}
+
+public class DemoQueueStatusResponse
+{
+    /// <summary>
+    /// 队列当前长度（待消费消息数）
+    /// </summary>
+    public long QueueLength { get; set; }
 }

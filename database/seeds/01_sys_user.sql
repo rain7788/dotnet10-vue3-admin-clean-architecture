@@ -81,7 +81,9 @@ INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `code`, `path`, `component`, 
 (1000000000002401, 1000000000002400, '菜单3-2-1', 'menu3-2-1', 'menu3-2-1', '/system/nested/menu3/menu3-2', NULL, 1, 1, 1),
 -- 运维管理
 (1000000000007000, NULL, '运维管理', 'safeguard', '/safeguard', '/index/index', 'ri:shield-check-line', 80, 1, 1),
-(1000000000007001, 1000000000007000, '服务器管理', 'server', 'server', '/safeguard/server', 'ri:hard-drive-3-line', 1, 1, 1);
+(1000000000007001, 1000000000007000, '服务器管理', 'server', 'server', '/safeguard/server', 'ri:hard-drive-3-line', 1, 1, 1),
+(1891234567890123456, NULL, 'Demo 示例', 'Demo', '/demo', '', 'ri:flask-line', 999, 1, 1, 1),
+(1891234567890123457, 1891234567890123456, '消息队列', 'MessageQueue', '/demo/message-queue', '/examples/message-queue/index', 'ri:mail-send-line', 1, 1, 1, 1);
 
 -- 设置工作台固定标签
 UPDATE `sys_menu` SET `fixed_tab` = 1 WHERE `id` = 1000000000001001;
@@ -139,8 +141,8 @@ INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES
 (1000000000000001, 1000000000002300), (1000000000000001, 1000000000002301), (1000000000000001, 1000000000002400), (1000000000000001, 1000000000002401),
 -- 运维管理
 (1000000000000001, 1000000000007000), (1000000000000001, 1000000000007001),
--- 更新日志
-(1000000000000001, 1000000000008001);
+-- Demo 示例
+(1000000000000001, 1891234567890123456), (1000000000000001, 1891234567890123457);
 
 -- 为超管分配所有权限
 INSERT INTO `sys_role_permission` (`role_id`, `permission_id`) VALUES

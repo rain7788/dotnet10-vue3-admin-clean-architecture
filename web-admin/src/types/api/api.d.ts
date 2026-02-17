@@ -88,7 +88,10 @@ declare namespace Api {
       isSuper: boolean
       status: number
       lastLoginTime?: string
+      lastActiveTime?: string
       createdTime: string
+      roles?: string[]
+      buttons?: string[]
     }
   }
 
@@ -110,6 +113,7 @@ declare namespace Api {
       isSuper: boolean
       status: number
       lastLoginTime?: string
+      lastActiveTime?: string
       createdTime: string
     }
 

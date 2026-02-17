@@ -22,5 +22,10 @@ public class DemoMessageQueueRouter : IAdminRouterBase
             return Results.Ok(new { message = "已入队" });
         })
             .WithSummary("Demo：入队消息（Redis LPUSH）");
+
+        // 查询队列状态
+        g.MapGet("status", async (DemoMessageQueueService service) =>
+            await service.GetQueueStatusAsync())
+            .WithSummary("Demo：查询队列状态（队列长度）");
     }
 }
