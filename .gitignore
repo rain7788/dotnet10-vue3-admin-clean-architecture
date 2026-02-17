@@ -15,11 +15,12 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
-[Ll]og/
-[Ll]ogs/
 
 # 不忽略前端系统日志视图
-!web-admin/src/views/system/log/
+# !web-admin/src/views/system/log/
+
+# 不忽略前端更新日志视图
+# !web-admin/src/views/change/log/
 
 # Visual Studio cache/options directory
 .vs/
@@ -172,5 +173,3 @@ Thumbs.db
 # IDE
 *.sublime-workspace
 *.sublime-project
-
-cankao/
