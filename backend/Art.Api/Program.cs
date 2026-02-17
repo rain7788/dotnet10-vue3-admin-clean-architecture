@@ -166,19 +166,16 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<RequestResponseLoggingMiddleware>();
 app.UseMiddleware<AuthorizationMiddleware>();
 
-// Swagger（开发环境）
-if (!app.Environment.IsProduction())
+// Swagger（任何环境）
+app.UseSwagger();
+app.UseSwaggerSloop(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerSloop(options =>
-    {
-        options.DocumentTitle = "Art API";
-        options.DefaultTheme = SwaggerSloopTheme.Auto;
-        options.SwaggerEndpoint($"/swagger/{ApiGroups.Admin}/swagger.json", "管理端");
-        options.SwaggerEndpoint($"/swagger/{ApiGroups.App}/swagger.json", "应用端");
-        options.SwaggerEndpoint($"/swagger/{ApiGroups.Common}/swagger.json", "公共端");
-    });
-}
+    options.DocumentTitle = "Art API";
+    options.DefaultTheme = SwaggerSloopTheme.Auto;
+    options.SwaggerEndpoint($"/swagger/{ApiGroups.Admin}/swagger.json", "管理端");
+    options.SwaggerEndpoint($"/swagger/{ApiGroups.App}/swagger.json", "应用端");
+    options.SwaggerEndpoint($"/swagger/{ApiGroups.Common}/swagger.json", "公共端");
+});
 
 // ========== 路由配置 ==========
 app.ConfigureApiGroups();
