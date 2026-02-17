@@ -136,18 +136,29 @@ public class AuthorizationMiddleware
     /// </summary>
     private static string? GetClientIpAddress(RequestContext requestContext, HttpContext context)
     {
+        string? ip = null;
+
         // 优先使用 RequestContext 中已设置的
         if (!string.IsNullOrWhiteSpace(requestContext.RequestIp))
-            return requestContext.RequestIp;
-
-        // 优先使用 X-Forwarded-For
-        var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
-        if (!string.IsNullOrWhiteSpace(forwarded))
         {
-            return forwarded.Split(',').FirstOrDefault()?.Trim();
+            ip = requestContext.RequestIp;
+        }
+        else
+        {
+            // 优先使用 X-Forwarded-For
+            var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
+            if (!string.IsNullOrWhiteSpace(forwarded))
+            {
+                ip = forwarded.Split(',').FirstOrDefault()?.Trim();
+            }
+            else
+            {
+                ip = context.Connection.RemoteIpAddress?.ToString();
+            }
         }
 
-        return context.Connection.RemoteIpAddress?.ToString()?.Replace("::ffff:", string.Empty);
+        // 统一处理 IPv4 映射地址，去掉 "::ffff:" 前缀
+        return ip?.Replace("::ffff:", string.Empty);
     }
 
     private static string ExtractToken(HttpContext context)
