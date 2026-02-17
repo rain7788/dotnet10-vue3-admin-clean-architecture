@@ -14,7 +14,7 @@ hero:
       link: https://admin.aftbay.com
     - theme: alt
       text: GitHub
-      link: https://github.com/rain7788/art-admin
+      link: https://github.com/rain7788/dotnet10-vue3-admin-clean-architecture
   image:
     src: /logo.svg
     alt: Art Admin

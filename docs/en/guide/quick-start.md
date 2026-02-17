@@ -13,8 +13,8 @@
 ## 1. Clone the Project
 
 ```bash
-git clone https://github.com/rain7788/art-admin.git
-cd art-admin
+git clone https://github.com/rain7788/dotnet10-vue3-admin-clean-architecture.git
+cd dotnet10-vue3-admin-clean-architecture
 ```
 
 ## 2. Initialize Database

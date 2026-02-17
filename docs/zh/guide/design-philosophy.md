@@ -30,6 +30,13 @@ Art Admin 的解决方案：
 
 四层分离的核心原则：
 
+```
+Art.Api（路由入口，无业务）
+  → Art.Core（业务逻辑）
+    → Art.Domain（实体/枚举/异常，零依赖）
+  ↘ Art.Infra（DbContext/缓存/框架支撑）
+```
+
 1. **Domain 层零依赖** — 只有实体、枚举、异常，可以独立测试
 2. **Core 层纯业务** — 不关心 HTTP、不关心框架，只写业务逻辑
 3. **Infra 层可替换** — 切换数据库、缓存提供者不影响业务层
@@ -42,3 +49,33 @@ Art Admin 的解决方案：
 - **不用 FluentValidation** — 在 Service 方法内直接校验，代码更直观
 - **ID 用 `long`** — 雪花 ID + `SmartLongConverter` 自动处理前端精度
 - **单行 if 不加花括号** — 减少代码行数，提升可读性
+
+## 模块化单体架构
+
+Art Admin 采用**模块化单体**而非微服务架构。详细理由参见[为什么不用微服务](/zh/guide/why-not-microservices)。
+
+核心考量：
+
+- **快速开发优先** — 业务爆发前，单体架构显著降低开发和运维复杂度
+- **清洁架构易拆分** — 四层分离使得未来按 Domain 边界拆分微服务成本极低
+- **避免过早优化** — 微服务的网络延迟、分布式事务、运维成本在验证阶段得不偿失
+
+## 优雅退出
+
+框架实现了完善的优雅退出机制，确保应用关闭时不丢失正在处理的任务：
+
+1. **接收停止信号** — Docker 发送 `SIGTERM` 或用户 `Ctrl+C`
+2. **取消任务循环** — 通知所有后台任务停止等待下一轮
+3. **等待任务完成** — 给正在执行的任务 10 秒时间完成当前业务
+4. **释放资源** — 关闭 Redis 连接、刷新日志缓冲区
+
+```csharp
+// Program.cs 中的资源清理
+app.Lifetime.ApplicationStopped.Register(() =>
+{
+    Redis.Dispose();      // 关闭 Redis 连接
+    Log.CloseAndFlush();  // 刷新日志到数据库
+});
+```
+
+> Docker 默认给 10 秒优雅关闭时间，与框架的等待时间对齐。如果任务可能超过 10 秒，可在 `docker-compose.yml` 中增加 `stop_grace_period: 30s`。

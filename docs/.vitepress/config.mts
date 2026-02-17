@@ -32,6 +32,7 @@ export default defineConfig({
                                 { text: '快速开始', link: '/zh/guide/quick-start' },
                                 { text: '项目结构', link: '/zh/guide/project-structure' },
                                 { text: '设计理念', link: '/zh/guide/design-philosophy' },
+                                { text: '为什么不用微服务', link: '/zh/guide/why-not-microservices' },
                             ]
                         },
                         {
@@ -95,7 +96,7 @@ export default defineConfig({
                     label: '本页目录',
                 },
                 editLink: {
-                    pattern: 'https://github.com/rain7788/art-admin/edit/main/docs/:path',
+                    pattern: 'https://github.com/rain7788/dotnet10-vue3-admin-clean-architecture/edit/main/docs/:path',
                     text: '在 GitHub 上编辑此页',
                 },
                 lastUpdated: {
@@ -130,6 +131,7 @@ export default defineConfig({
                                 { text: 'Quick Start', link: '/en/guide/quick-start' },
                                 { text: 'Project Structure', link: '/en/guide/project-structure' },
                                 { text: 'Design Philosophy', link: '/en/guide/design-philosophy' },
+                                { text: 'Why Not Microservices', link: '/en/guide/why-not-microservices' },
                             ]
                         },
                         {
@@ -190,7 +192,7 @@ export default defineConfig({
                     ]
                 },
                 editLink: {
-                    pattern: 'https://github.com/rain7788/art-admin/edit/main/docs/:path',
+                    pattern: 'https://github.com/rain7788/dotnet10-vue3-admin-clean-architecture/edit/main/docs/:path',
                     text: 'Edit this page on GitHub',
                 },
                 footer: {
@@ -204,7 +206,7 @@ export default defineConfig({
     themeConfig: {
         logo: '/logo.svg',
         socialLinks: [
-            { icon: 'github', link: 'https://github.com/rain7788/art-admin' },
+            { icon: 'github', link: 'https://github.com/rain7788/dotnet10-vue3-admin-clean-architecture' },
         ],
         search: {
             provider: 'local',

@@ -1,6 +1,6 @@
 # 乐观锁并发控制
 
-在高并发场景下（如秒杀、库存扣减、状态变更），需要防止多个请求同时修改同一行数据导致数据不一致。Art Admin 使用 EF Core 的 `[ConcurrencyCheck]` 实现乐观锁。
+Art Admin 使用 EF Core 的 `[ConcurrencyCheck]` 实现乐观锁，作为数据安全的**兜底保护**，防止低频并发场景下多人同时编辑同一条记录导致数据覆盖。
 
 ## 什么是乐观锁？
 
@@ -10,62 +10,68 @@
 2. 更新时，在 `WHERE` 条件中加上这些字段的旧值
 3. 如果 `UPDATE` 影响了 0 行，说明数据已被修改，抛出并发冲突异常
 
+::: warning 重要
+乐观锁是一种**兜底机制**，冲突时会直接抛异常让用户重试。因此它只适合冲突概率很低的场景（如后台管理员编辑配置）。对于**高并发写入场景**（如库存扣减、秒杀、余额变动），应该使用[分布式锁](/zh/backend/distributed-lock)来保证互斥，而非乐观锁。
+:::
+
 ## 使用 ConcurrencyCheck
 
-在需要并发保护的关键字段上添加 `[ConcurrencyCheck]` 注解：
+在需要并发保护的字段上添加 `[ConcurrencyCheck]` 注解。推荐直接复用 `UpdatedTime` 字段：
 
 ```csharp
-[Table("order")]
-public class Order : EntityBaseWithUpdate
+[Table("sys_config")]
+public class SysConfig : EntityBaseWithUpdate
 {
-    [MaxLength(50)]
-    public string OrderNo { get; set; } = default!;
+    [MaxLength(100)]
+    public string ConfigKey { get; set; } = default!;
+
+    [MaxLength(500)]
+    public string ConfigValue { get; set; } = default!;
+
+    [MaxLength(200)]
+    public string? Remark { get; set; }
 
     /// <summary>
-    /// 订单状态 — 关键业务状态，使用乐观锁保护
+    /// 使用更新时间作为乐观锁字段
+    /// 多人同时编辑配置项时，后保存的会收到冲突提示
     /// </summary>
     [ConcurrencyCheck]
-    public OrderStatus Status { get; set; }
-
-    /// <summary>
-    /// 库存数量 — 使用乐观锁防止超卖
-    /// </summary>
-    [ConcurrencyCheck]
-    public int Stock { get; set; }
-
-    public decimal Amount { get; set; }
+    public new DateTime? UpdatedTime { get; set; }
 }
 ```
 
 ## EF Core 生成的 SQL
 
-当标注了 `[ConcurrencyCheck]` 后，EF Core 更新时自动在 WHERE 中包含该字段的原始值：
+标注 `[ConcurrencyCheck]` 后，EF Core 更新时自动将该字段的原始值加入 WHERE 条件：
 
 ```sql
--- EF Core 自动生成
-UPDATE `order`
-SET `status` = @newStatus, `stock` = @newStock, `updated_time` = @now
+-- 管理员 A 读取时 updated_time = '2025-03-15 10:00:00'
+UPDATE `sys_config`
+SET `config_value` = @newValue, `updated_time` = NOW()
 WHERE `id` = @id
-  AND `status` = @originalStatus    -- ConcurrencyCheck 添加
-  AND `stock` = @originalStock;     -- ConcurrencyCheck 添加
-```
+  AND `updated_time` = '2025-03-15 10:00:00';  -- ConcurrencyCheck 添加
+-- 影响 1 行 ✅
 
-如果另一个请求在此期间修改了 `status` 或 `stock`，此 SQL 影响 0 行，EF Core 抛出 `DbUpdateConcurrencyException`。
+-- 管理员 B 也在同一时间读取了相同记录（updated_time 还是旧值）
+UPDATE `sys_config`
+SET `config_value` = @newValue2, `updated_time` = NOW()
+WHERE `id` = @id
+  AND `updated_time` = '2025-03-15 10:00:00';  -- 已被 A 改过，匹配不上
+-- 影响 0 行 → EF Core 抛出 DbUpdateConcurrencyException ❌
+```
 
 ## 处理并发冲突
 
 ```csharp
-public async Task ReduceStockAsync(long orderId, int quantity)
+public async Task UpdateConfigAsync(ConfigUpdateRequest req)
 {
-    var order = await _db.Order.FirstOrDefaultAsync(x => x.Id == orderId);
-    if (order == null)
-        throw new NotFoundException("订单不存在");
+    var config = await _db.SysConfig.FirstOrDefaultAsync(x => x.Id == req.Id);
+    if (config == null)
+        throw new NotFoundException("配置不存在");
 
-    if (order.Stock < quantity)
-        throw new BadRequestException("库存不足");
-
-    order.Stock -= quantity;
-    order.UpdatedTime = DateTime.Now;
+    config.ConfigValue = req.ConfigValue;
+    config.Remark = req.Remark;
+    config.UpdatedTime = DateTime.Now;
 
     try
     {
@@ -73,33 +79,36 @@ public async Task ReduceStockAsync(long orderId, int quantity)
     }
     catch (DbUpdateConcurrencyException)
     {
-        // 并发冲突：其他请求已修改了 stock
-        throw new BadRequestException("操作冲突，请刷新后重试");
+        // 兜底保护：另一个管理员刚刚修改了这条记录
+        throw new BadRequestException("该记录已被其他人修改，请刷新后重试");
     }
 }
 ```
 
 ## 适用场景
 
-| 场景 | 是否需要乐观锁 | 说明 |
+| 场景 | 推荐方案 | 说明 |
 | --- | --- | --- |
-| 订单状态变更 | ✅ | 防止重复操作（如重复支付） |
-| 库存扣减 | ✅ | 防止超卖 |
-| 余额变动 | ✅ | 防止重复扣款 |
-| 基础信息修改 | ❌ | 覆盖即可，不需要并发保护 |
-| 日志记录 | ❌ | 只有 INSERT，不存在并发更新 |
+| 系统配置编辑 | ✅ 乐观锁 | 管理员同时编辑概率低，冲突时提示刷新即可 |
+| 角色权限编辑 | ✅ 乐观锁 | 同上，低频操作 |
+| 用户资料修改 | ❌ 不需要 | 通常只有自己编辑，覆盖即可 |
+| 库存扣减 / 秒杀 | ❌ **用分布式锁** | 高并发场景，乐观锁会导致大量异常 |
+| 余额变动 | ❌ **用分布式锁** | 同上，需要严格互斥 |
+| 订单状态变更 | ❌ **用分布式锁** | 并发频率高，且失败重试体验差 |
+| 日志记录 | ❌ 不需要 | 只有 INSERT，不存在并发更新 |
 
 ## 乐观锁 vs 分布式锁
 
 | | 乐观锁 `[ConcurrencyCheck]` | 分布式锁 `RedisLocker` |
 | --- | --- | --- |
+| 定位 | 兜底安全网 | 主动互斥 |
 | 实现层 | 数据库 WHERE 条件 | Redis SetNx |
-| 锁粒度 | 行级别（精确到字段） | 资源级别（自定义 Key） |
+| 冲突处理 | 抛异常，用户手动重试 | 等待获锁或立即失败 |
 | 性能 | 高（无额外 IO） | 需要 Redis 往返 |
-| 冲突处理 | 抛异常，客户端重试 | 等待或立即失败 |
-| 适用 | 低冲突频率 | 高冲突或需要互斥执行 |
+| 适用 | 低冲突（后台配置编辑） | 高冲突（库存、余额、秒杀） |
 
 ::: tip 最佳实践
-对于**低冲突频率**的场景（如订单状态更新），使用 `[ConcurrencyCheck]` 更轻量。
-对于**高频并发**操作（如秒杀），建议组合使用分布式锁 + 乐观锁双重保障。
+- **后台管理场景**（编辑配置、角色、菜单等）：加 `[ConcurrencyCheck]` 即可，作为兜底保护
+- **高并发写入场景**（库存、余额、秒杀等）：必须使用[分布式锁](/zh/backend/distributed-lock)，乐观锁不适用
+- 两者不冲突，可以组合使用：分布式锁做主要保护，乐观锁做最后一道防线
 :::
