@@ -144,7 +144,6 @@ const route = useRoute()
 const isPassing = ref(false)
 const isClickPass = ref(false)
 
-const systemName = AppConfig.systemInfo.name
 const formRef = ref<FormInstance>()
 
 const formData = reactive({
@@ -195,7 +194,7 @@ const handleSubmit = async () => {
     // 登录请求
     const { username, password } = formData
 
-    const { token, refreshToken } = await fetchLogin({
+    const { token, refreshToken, username: respUsername, realName } = await fetchLogin({
       username,
       password
     })
@@ -210,7 +209,8 @@ const handleSubmit = async () => {
     userStore.setLoginStatus(true)
 
     // 登录成功处理
-    showLoginSuccessNotice()
+    const displayName = realName || respUsername || username
+    showLoginSuccessNotice(displayName)
 
     // 获取 redirect 参数，如果存在则跳转到指定页面，否则跳转到首页
     const redirect = route.query.redirect as string
@@ -236,14 +236,14 @@ const resetDragVerify = () => {
 }
 
 // 登录成功提示
-const showLoginSuccessNotice = () => {
+const showLoginSuccessNotice = (displayName?: string) => {
   setTimeout(() => {
     ElNotification({
       title: t('login.success.title'),
       type: 'success',
       duration: 2500,
       zIndex: 10000,
-      message: `${t('login.success.message')}, ${systemName}!`
+      message: displayName ? `${t('login.success.message')}, ${displayName}!` : `${t('login.success.message')}!`
     })
   }, 1000)
 }

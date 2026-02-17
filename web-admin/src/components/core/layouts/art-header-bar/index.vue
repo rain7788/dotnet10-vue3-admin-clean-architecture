@@ -98,7 +98,7 @@
             </template>
             <template #default>
               <p>{{ $t('topBar.guide.title')
-              }}<span :style="{ color: systemThemeColor }"> {{ $t('topBar.guide.theme') }} </span>、 <span
+                }}<span :style="{ color: systemThemeColor }"> {{ $t('topBar.guide.theme') }} </span>、 <span
                   :style="{ color: systemThemeColor }"> {{ $t('topBar.guide.menu') }} </span>{{
                     $t('topBar.guide.description') }}
               </p>
@@ -187,6 +187,8 @@ const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
 
 onMounted(() => {
   initLanguage()
+  // Demo 站点默认不展示“设置引导”提示
+  settingStore.hideSettingGuide()
   document.addEventListener('click', bodyCloseNotice)
 })
 
