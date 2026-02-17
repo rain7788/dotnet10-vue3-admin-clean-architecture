@@ -94,10 +94,12 @@
                     同时发起多个锁请求，观察锁的互斥效果。可以打开多个浏览器标签页同时操作来模拟多客户端竞争。
                 </p>
                 <ElSpace wrap>
-                    <ElButton @click="handleConcurrentTryLock">
+                    <ElButton :loading="concurrentTryLocking" :disabled="concurrentTryLocking || concurrentWaitLocking"
+                        @click="handleConcurrentTryLock">
                         同时发起 3 个 TryLock
                     </ElButton>
-                    <ElButton @click="handleConcurrentWaitLock">
+                    <ElButton :loading="concurrentWaitLocking" :disabled="concurrentTryLocking || concurrentWaitLocking"
+                        @click="handleConcurrentWaitLock">
                         同时发起 3 个 WaitLock
                     </ElButton>
                 </ElSpace>
@@ -185,6 +187,8 @@ const waitLockWaitSeconds = ref(10)
 const tryLocking = ref(false)
 const waitLocking = ref(false)
 const statusLoading = ref(false)
+const concurrentTryLocking = ref(false)
+const concurrentWaitLocking = ref(false)
 
 const tryLockResult = ref<any>(null)
 const waitLockResult = ref<any>(null)
@@ -236,31 +240,45 @@ const handleWaitLock = async () => {
 }
 
 const handleConcurrentTryLock = async () => {
+    if (concurrentTryLocking.value || concurrentWaitLocking.value) return
+
+    concurrentTryLocking.value = true
     concurrentResults.value = []
-    const promises = Array.from({ length: 3 }, () =>
-        fetchTryLock({ holdSeconds: 5 }).catch(() => ({
-            acquired: false,
-            message: '请求失败',
-            lockKey: '',
-            heldForMs: 0
-        }))
-    )
-    concurrentResults.value = await Promise.all(promises)
-    await refreshStatus()
+    try {
+        const promises = Array.from({ length: 3 }, () =>
+            fetchTryLock({ holdSeconds: 5 }).catch(() => ({
+                acquired: false,
+                message: '请求失败',
+                lockKey: '',
+                heldForMs: 0
+            }))
+        )
+        concurrentResults.value = await Promise.all(promises)
+        await refreshStatus()
+    } finally {
+        concurrentTryLocking.value = false
+    }
 }
 
 const handleConcurrentWaitLock = async () => {
+    if (concurrentTryLocking.value || concurrentWaitLocking.value) return
+
+    concurrentWaitLocking.value = true
     concurrentResults.value = []
-    const promises = Array.from({ length: 3 }, () =>
-        fetchWaitLock({ holdSeconds: 2, waitSeconds: 15 }).catch(() => ({
-            acquired: false,
-            message: '请求失败',
-            lockKey: '',
-            heldForMs: 0
-        }))
-    )
-    concurrentResults.value = await Promise.all(promises)
-    await refreshStatus()
+    try {
+        const promises = Array.from({ length: 3 }, () =>
+            fetchWaitLock({ holdSeconds: 2, waitSeconds: 15 }).catch(() => ({
+                acquired: false,
+                message: '请求失败',
+                lockKey: '',
+                heldForMs: 0
+            }))
+        )
+        concurrentResults.value = await Promise.all(promises)
+        await refreshStatus()
+    } finally {
+        concurrentWaitLocking.value = false
+    }
 }
 
 onMounted(() => {

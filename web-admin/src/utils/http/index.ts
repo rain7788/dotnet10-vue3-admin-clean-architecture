@@ -21,7 +21,7 @@ import { HttpError, handleError, showError, showSuccess, ErrorResponse } from '.
 import { $t } from '@/locales'
 
 /** 请求配置常量 */
-const REQUEST_TIMEOUT = 15000
+const REQUEST_TIMEOUT = 60000
 const LOGOUT_DELAY = 500
 const MAX_RETRIES = 0
 const RETRY_DELAY = 1000
