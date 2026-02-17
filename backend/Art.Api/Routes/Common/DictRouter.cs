@@ -33,9 +33,7 @@ public class DictRouter : ICommonRouterBase
     private static IResult GetEnumOptions(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-        {
             return Results.BadRequest(new { code = "INVALID_PARAM", msg = "枚举名称不能为空" });
-        }
 
         // 在 Art.Domain 程序集中查找枚举
         var assembly = Assembly.Load("Art.Domain");
@@ -43,9 +41,7 @@ public class DictRouter : ICommonRouterBase
         var enumType = assembly.GetType(fullTypeName);
 
         if (enumType == null || !enumType.IsEnum)
-        {
             return Results.NotFound(new { code = "ENUM_NOT_FOUND", msg = $"未找到枚举: {name}" });
-        }
 
         var options = new List<EnumOption>();
         foreach (var value in Enum.GetValues(enumType))
@@ -57,9 +53,7 @@ public class DictRouter : ICommonRouterBase
             var label = enumName;
             var descAttr = memberInfo?.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>();
             if (descAttr != null)
-            {
                 label = descAttr.Description;
-            }
 
             options.Add(new EnumOption
             {

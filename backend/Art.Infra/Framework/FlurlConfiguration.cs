@@ -38,9 +38,7 @@ public static class FlurlConfiguration
             try
             {
                 if (call.Response != null)
-                {
                     responseBody = await call.Response.GetStringAsync();
-                }
             }
             catch
             {
@@ -49,9 +47,7 @@ public static class FlurlConfiguration
 
             // 截断过长的响应内容
             if (responseBody.Length > 1000)
-            {
                 responseBody = responseBody[..1000] + "...[truncated]";
-            }
 
             Log.Error(
                 call.Exception,

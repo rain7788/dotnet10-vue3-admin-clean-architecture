@@ -73,14 +73,10 @@ public class ExceptionMiddleware
             _logger.LogError(ex, "Unhandled exception: {Message}", ex.Message);
             // 开发环境显示真实错误信息，方便调试；生产环境隐藏内部异常详情
             if (!_environment.IsDevelopment())
-            {
                 message = "服务器错误";
-            }
         }
         else if (statusCode == HttpStatusCode.InternalServerError)
-        {
             _logger.LogError(ex, "Internal server exception: {Message}", ex.Message);
-        }
         // else
         // {
         //     // 业务异常只记录 Warning 级别
@@ -118,9 +114,7 @@ public class ExceptionMiddleware
     private static int GetErrorCode(Exception ex, HttpStatusCode statusCode)
     {
         if (ex is CustomException customEx && customEx.ErrorCode != 0)
-        {
             return customEx.ErrorCode;
-        }
         return (int)statusCode;
     }
 

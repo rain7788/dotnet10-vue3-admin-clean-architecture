@@ -28,19 +28,13 @@ public static class RouteServiceCollectionExtensions
         foreach (var type in types)
         {
             if (typeof(IAppRouterBase).IsAssignableFrom(type))
-            {
                 services.TryAddEnumerable(ServiceDescriptor.Transient(typeof(IAppRouterBase), type));
-            }
 
             if (typeof(IAdminRouterBase).IsAssignableFrom(type))
-            {
                 services.TryAddEnumerable(ServiceDescriptor.Transient(typeof(IAdminRouterBase), type));
-            }
 
             if (typeof(ICommonRouterBase).IsAssignableFrom(type))
-            {
                 services.TryAddEnumerable(ServiceDescriptor.Transient(typeof(ICommonRouterBase), type));
-            }
         }
 
         return services;

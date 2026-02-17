@@ -33,9 +33,7 @@ public class DemoModeMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         if (_isDemoMode && IsWriteOperation(context.Request))
-        {
             throw new ForbiddenException("演示环境，不允许修改数据");
-        }
 
         await _next(context);
     }

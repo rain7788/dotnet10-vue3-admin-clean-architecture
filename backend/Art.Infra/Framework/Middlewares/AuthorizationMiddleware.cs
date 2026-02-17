@@ -64,16 +64,12 @@ public class AuthorizationMiddleware
         if (requiredTokenType != null && requiredTokenType != TokenType.无)
         {
             if (string.IsNullOrWhiteSpace(token))
-            {
                 throw new UnauthorizedException();
-            }
 
             var userInfo = await GetUserInfo(token, dbContext, cache);
 
             if (userInfo == null || userInfo.TokenType != requiredTokenType)
-            {
                 throw new UnauthorizedException();
-            }
 
             // 填充用户上下文
             PopulateContext(requestContext, userInfo);
@@ -83,9 +79,7 @@ public class AuthorizationMiddleware
             // 非必须鉴权的接口，如果有 Token 也尝试解析
             var userInfo = await GetUserInfo(token, dbContext, cache);
             if (userInfo != null)
-            {
                 PopulateContext(requestContext, userInfo);
-            }
         }
 
         // 记录用户信息到 Serilog DiagnosticContext（用于日志字段提取）
@@ -116,18 +110,14 @@ public class AuthorizationMiddleware
         {
             var tenantId = tenantHeader.FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(tenantId))
-            {
                 requestContext.TenantId = tenantId;
-            }
         }
 
         // 从 Header 中获取是否忽略租户过滤（平台端跨租户查询）
         if (context.Request.Headers.TryGetValue("X-Ignore-Tenant-Filter", out var ignoreHeader))
         {
             if (bool.TryParse(ignoreHeader.FirstOrDefault(), out var ignore))
-            {
                 requestContext.IgnoreTenantFilter = ignore;
-            }
         }
     }
 
@@ -140,21 +130,15 @@ public class AuthorizationMiddleware
 
         // 优先使用 RequestContext 中已设置的
         if (!string.IsNullOrWhiteSpace(requestContext.RequestIp))
-        {
             ip = requestContext.RequestIp;
-        }
         else
         {
             // 优先使用 X-Forwarded-For
             var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
             if (!string.IsNullOrWhiteSpace(forwarded))
-            {
                 ip = forwarded.Split(',').FirstOrDefault()?.Trim();
-            }
             else
-            {
                 ip = context.Connection.RemoteIpAddress?.ToString();
-            }
         }
 
         // 统一处理 IPv4 映射地址，去掉 "::ffff:" 前缀
@@ -170,9 +154,7 @@ public class AuthorizationMiddleware
             {
                 // 支持 "Bearer xxx" 格式
                 if (headerAuthStr.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                {
                     return headerAuthStr.Substring("Bearer ".Length).Trim();
-                }
                 // 也支持直接传 token（如 sc_xxx）
                 return headerAuthStr.Trim();
             }
@@ -194,9 +176,7 @@ public class AuthorizationMiddleware
         // 尝试从缓存获取
         var cached = cache.Get<string>(cacheKey);
         if (!string.IsNullOrEmpty(cached))
-        {
             return JsonSerializer.Deserialize<CachedUserInfo>(cached);
-        }
 
         // 从数据库查询 Token 信息
         var tokenInfo = await dbContext.TokenAccess
@@ -210,9 +190,7 @@ public class AuthorizationMiddleware
             .FirstOrDefaultAsync();
 
         if (tokenInfo == null)
-        {
             return null;
-        }
 
         // 根据 TokenType 查询对应的用户信息
         CachedUserInfo? userInfo = null;
@@ -294,9 +272,7 @@ public class AuthorizationMiddleware
 
         // 如果用户信息中有租户 ID，且请求头中没有指定，则使用用户的租户
         if (!string.IsNullOrEmpty(info.TenantId) && ctx.TenantId == "default")
-        {
             ctx.TenantId = info.TenantId;
-        }
     }
 
     private static string ComputeMd5(string input)

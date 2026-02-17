@@ -92,9 +92,7 @@ public class TokenService
             .FirstOrDefault(x => x.Token == refreshToken && x.ExpirationTime > DateTime.Now);
 
         if (rt == null)
-        {
             return null;
-        }
 
         // 更新 RefreshToken
         rt.Token = Guid.NewGuid().ToString("N");

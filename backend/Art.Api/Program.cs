@@ -133,9 +133,7 @@ services.AddSwaggerGen(options =>
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
-    {
         options.IncludeXmlComments(xmlPath);
-    }
 });
 
 // ========== 构建应用 ==========

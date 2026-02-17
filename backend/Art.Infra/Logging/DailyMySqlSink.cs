@@ -46,9 +46,7 @@ public class DailyMySqlSink : ILogEventSink, IDisposable
             _buffer.Add(logEvent);
 
             if (_buffer.Count >= _batchSize)
-            {
                 FlushBuffer();
-            }
         }
     }
 
@@ -57,9 +55,7 @@ public class DailyMySqlSink : ILogEventSink, IDisposable
         lock (_lock)
         {
             if (_buffer.Count > 0)
-            {
                 FlushBuffer();
-            }
         }
     }
 
@@ -256,9 +252,7 @@ VALUES
         lock (_lock)
         {
             if (_buffer.Count > 0)
-            {
                 FlushBuffer();
-            }
         }
     }
 }

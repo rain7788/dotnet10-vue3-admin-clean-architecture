@@ -35,9 +35,7 @@ public static class RedisLockExtensions
         while (DateTime.UtcNow - startTime < wait)
         {
             if (client.SetNx(lockKey, lockValue, timeout))
-            {
                 return new RedisLocker(client, lockKey, lockValue, timeout, enableWatchdog);
-            }
 
             await Task.Delay(retryInterval);
         }
@@ -63,9 +61,7 @@ public static class RedisLockExtensions
         var lockValue = Guid.NewGuid().ToString("N");
 
         if (client.SetNx(lockKey, lockValue, timeout))
-        {
             return new RedisLocker(client, lockKey, lockValue, timeout, enableWatchdog);
-        }
 
         return null;
     }

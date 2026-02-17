@@ -167,10 +167,10 @@ export class MenuProcessor {
         // 跳过合法的绝对路径：外部链接和 iframe 路由
         if (this.isValidAbsolutePath(childPath)) return
 
-        // 检测非法的绝对路径
-        if (childPath.startsWith('/')) {
-          this.logPathError(child, childPath, parentName, level)
-        }
+        // // 检测非法的绝对路径
+        // if (childPath.startsWith('/')) {
+        //   this.logPathError(child, childPath, parentName, level)
+        // }
       })
 
       // 递归检查更深层级的子路由

@@ -98,9 +98,7 @@ public abstract class MultiTenantDbContext : DbContext
         foreach (var entry in ChangeTracker.Entries<ITenantEntity>())
         {
             if (entry.State == EntityState.Added && string.IsNullOrEmpty(entry.Entity.TenantId))
-            {
                 entry.Entity.TenantId = CurrentTenantId;
-            }
         }
     }
 }

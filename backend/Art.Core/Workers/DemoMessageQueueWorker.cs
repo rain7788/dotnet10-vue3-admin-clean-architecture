@@ -32,18 +32,14 @@ public class DemoMessageQueueWorker
         {
             var msg = _cache.RPop(CacheKeys.DemoMessageQueue);
             if (string.IsNullOrEmpty(msg))
-            {
                 break;
-            }
 
             processed++;
             _logger.LogInformation("[DemoQueue] 消费消息: {Message}", msg);
         }
 
         if (processed > 0)
-        {
             _logger.LogInformation("[DemoQueue] 本轮处理完成: {Count}", processed);
-        }
 
         return Task.CompletedTask;
     }

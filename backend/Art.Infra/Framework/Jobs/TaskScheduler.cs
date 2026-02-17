@@ -127,9 +127,7 @@ public class TaskScheduler : ITaskScheduler, IHostedService
 
         _redisClient = _serviceProvider.GetService<RedisClient>();
         if (_redisClient == null)
-        {
             _logger.LogWarning("未检测到 Redis 连接，分布式锁将被禁用");
-        }
 
         // 配置任务
         ConfigureDefaultTasks();
@@ -201,9 +199,7 @@ public class TaskScheduler : ITaskScheduler, IHostedService
     {
         // 检查时间限制
         if (task.AllowedHours != null && !task.AllowedHours.Contains(DateTime.Now.Hour))
-        {
             return;
-        }
 
         if (task.PreventDuplicateInterval.HasValue)
         {
@@ -295,9 +291,7 @@ public class TaskScheduler : ITaskScheduler, IHostedService
         }
 
         if (loopToken.IsCancellationRequested)
-        {
             _logger.LogInformation("长期任务 {TaskName} 循环被取消，共处理 {Count} 次", task.Name, processedCount);
-        }
     }
 
     /// <summary>

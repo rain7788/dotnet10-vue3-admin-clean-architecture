@@ -128,6 +128,24 @@ throw new BadRequestException("用户名不能为空");
 // 返回: { "code": "BAD_REQUEST", "msg": "用户名不能为空" }
 ```
 
+### 代码风格：单语句 if 不加花括号
+
+当 `if` / `else if` / `else` 分支只有**一条语句**时，**不写花括号**，直接换行缩进：
+
+```csharp
+// ✅ 正确
+if (user == null)
+    throw new NotFoundException("用户不存在");
+
+// ❌ 错误
+if (user == null)
+{
+    throw new NotFoundException("用户不存在");
+}
+```
+
+> 多语句、嵌套控制流（`if/for/foreach/while/using/try` 等）仍然保留花括号。
+
 ### 多条件查询 (必须用 LinqKit)
 
 ```csharp

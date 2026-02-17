@@ -10,13 +10,16 @@ public class TaskConfiguration : ITaskConfigurationProvider
 {
     private readonly DailyWorker _dailyWorker;
     private readonly DemoMessageQueueWorker _demoMessageQueueWorker;
+    private readonly DemoDelayQueueWorker _demoDelayQueueWorker;
 
     public TaskConfiguration(
         DailyWorker dailyWorker,
-        DemoMessageQueueWorker demoMessageQueueWorker)
+        DemoMessageQueueWorker demoMessageQueueWorker,
+        DemoDelayQueueWorker demoDelayQueueWorker)
     {
         _dailyWorker = dailyWorker;
         _demoMessageQueueWorker = demoMessageQueueWorker;
+        _demoDelayQueueWorker = demoDelayQueueWorker;
     }
 
     /// <summary>
@@ -51,6 +54,12 @@ public class TaskConfiguration : ITaskConfigurationProvider
             runDuration: TimeSpan.FromSeconds(30),
             taskName: "demo.queue.consume");
 
-        // 可以在此处添加更多任务...
+        // Demo：Redis 延迟队列消费（Sorted Set ZRANGEBYSCORE + ZREM）
+        taskScheduler.AddLongRunningTask(
+            _demoDelayQueueWorker.ProcessQueue,
+            interval: TimeSpan.FromSeconds(1),
+            processingInterval: TimeSpan.FromMilliseconds(500),
+            runDuration: TimeSpan.FromSeconds(30),
+            taskName: "demo.delay-queue.consume");
     }
 }

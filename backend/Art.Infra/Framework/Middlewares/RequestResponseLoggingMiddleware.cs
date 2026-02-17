@@ -40,9 +40,7 @@ public class RequestResponseLoggingMiddleware
             // 记录请求参数（异步方式读取）
             var requestParams = await GetRequestParamsAsync(context);
             if (!string.IsNullOrEmpty(requestParams))
-            {
                 _diagnosticContext.Set("Request", TruncateContent(requestParams));
-            }
 
             await _next(context);
 
@@ -54,9 +52,7 @@ public class RequestResponseLoggingMiddleware
                 responseBodyStream.Seek(0, SeekOrigin.Begin);
 
                 if (!string.IsNullOrEmpty(responseBody))
-                {
                     _diagnosticContext.Set("Response", TruncateContent(responseBody));
-                }
             }
         }
         finally
@@ -77,9 +73,7 @@ public class RequestResponseLoggingMiddleware
             var method = context.Request.Method.ToUpper();
 
             if (method == "GET" || method == "DELETE")
-            {
                 return context.Request.QueryString.Value ?? string.Empty;
-            }
 
             if (method == "POST" || method == "PUT" || method == "PATCH")
             {
@@ -89,17 +83,13 @@ public class RequestResponseLoggingMiddleware
 
                 // 确保可以 seek
                 if (context.Request.Body.CanSeek)
-                {
                     context.Request.Body.Seek(0, SeekOrigin.Begin);
-                }
 
                 using var reader = new StreamReader(context.Request.Body, Encoding.UTF8, leaveOpen: true);
                 var body = await reader.ReadToEndAsync();
 
                 if (context.Request.Body.CanSeek)
-                {
                     context.Request.Body.Seek(0, SeekOrigin.Begin);
-                }
 
                 return body ?? string.Empty;
             }

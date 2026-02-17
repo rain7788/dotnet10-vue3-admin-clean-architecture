@@ -63,3 +63,64 @@ export function fetchLockStatus() {
         url: '/admin/demo/lock/status'
     })
 }
+
+// ===================== Demo 延迟消息队列 =====================
+
+// 投递延迟消息
+export function fetchDelayEnqueue(data: {
+    message: string
+    delaySeconds?: number
+    overwrite?: boolean
+}) {
+    return request.post<{
+        message: string
+        delaySeconds: number
+        estimatedFireAt: string
+    }>({
+        url: '/admin/demo/delay-queue/enqueue',
+        data
+    })
+}
+
+// 批量投递延迟消息
+export function fetchDelayBatchEnqueue(data: {
+    messages: string[]
+    delaySeconds?: number
+    overwrite?: boolean
+}) {
+    return request.post<{
+        count: number
+        delaySeconds: number
+        estimatedFireAt: string
+    }>({
+        url: '/admin/demo/delay-queue/enqueue/batch',
+        data
+    })
+}
+
+// 查询延迟队列状态
+export function fetchDelayQueueStatus() {
+    return request.get<{
+        totalCount: number
+        readyCount: number
+        pendingCount: number
+        nextFireAtUtc: string | null
+    }>({
+        url: '/admin/demo/delay-queue/status'
+    })
+}
+
+// 预览队列消息
+export function fetchDelayQueuePreview(count?: number) {
+    return request.get<
+        {
+            message: string
+            fireAtUtc: string
+            isReady: boolean
+            remainingSeconds: number
+        }[]
+    >({
+        url: '/admin/demo/delay-queue/preview',
+        params: { count }
+    })
+}

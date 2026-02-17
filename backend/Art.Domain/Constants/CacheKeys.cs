@@ -26,4 +26,14 @@ public static class CacheKeys
     /// Demo：队列接口限流计数器
     /// </summary>
     public static string DemoQueueRateLimit => $"{Prefix}demo:mq:rate";
+
+    /// <summary>
+    /// Demo：延迟消息队列（Redis Sorted Set）
+    /// </summary>
+    public static string DemoDelayQueue => $"{Prefix}demo:dq";
+
+    /// <summary>
+    /// Demo：延迟队列接口限流计数器
+    /// </summary>
+    public static string DemoDelayQueueRateLimit => $"{Prefix}demo:dq:rate";
 }

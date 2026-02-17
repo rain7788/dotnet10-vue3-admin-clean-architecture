@@ -30,9 +30,7 @@ public static class ServiceCollectionExtensions
     private static IEnumerable<Assembly> GetTargetAssemblies(Assembly[] assemblies)
     {
         if (assemblies.Length > 0)
-        {
             return assemblies;
-        }
 
         // 默认：自动扫描所有 Art.* 程序集。
         // 仅依赖 AppDomain.CurrentDomain.GetAssemblies() 会漏掉“尚未加载”的引用程序集，
@@ -43,9 +41,7 @@ public static class ServiceCollectionExtensions
 
         var entry = Assembly.GetEntryAssembly();
         if (entry is null)
-        {
             return loaded;
-        }
 
         var referenced = entry.GetReferencedAssemblies()
             .Where(a => a.Name?.StartsWith("Art") == true)

@@ -42,9 +42,7 @@ public class SysUserService
         var username = request.Username?.Trim();
 
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(request.Password))
-        {
             throw new BadRequestException("用户名和密码不能为空");
-        }
 
         // 检查登录失败次数
         var failKey = CacheKeys.LoginFailCount($"{username}:{DateTime.Now:yyyyMMdd}");
@@ -53,23 +51,17 @@ public class SysUserService
 
         const int maxFailCount = 10;
         if (failCount >= maxFailCount)
-        {
             throw new BadRequestException("今日密码错误次数过多，禁止登录");
-        }
 
         // 查询用户
         var user = await _context.SysUser
             .FirstOrDefaultAsync(x => x.Username == username);
 
         if (user == null)
-        {
             throw new BadRequestException("用户不存在");
-        }
 
         if (user.Status != ActiveStatus.正常)
-        {
             throw new BadRequestException("用户已被禁用");
-        }
 
         // 验证密码（密码使用 SHA256 + Base64 加密存储）
         if (!PasswordHelper.Verify(request.Password, user.Password))
@@ -105,15 +97,11 @@ public class SysUserService
     public TokenInfo RefreshToken(string refreshToken)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
-        {
             throw new UnauthorizedException("RefreshToken 不能为空");
-        }
 
         var tokenInfo = _tokenService.RefreshToken(refreshToken);
         if (tokenInfo == null)
-        {
             throw new UnauthorizedException("RefreshToken 已过期或无效");
-        }
 
         return tokenInfo;
     }
@@ -141,9 +129,7 @@ public class SysUserService
             .FirstOrDefaultAsync();
 
         if (user == null)
-        {
             throw new NotFoundException("用户不存在");
-        }
 
         return user;
     }
@@ -158,9 +144,7 @@ public class SysUserService
 
         var user = await _context.SysUser.FirstOrDefaultAsync(x => x.Id == _user.Id);
         if (user == null)
-        {
             throw new NotFoundException("用户不存在");
-        }
 
         if (!PasswordHelper.Verify(request.OldPassword, user.Password))
             throw new BadRequestException("旧密码错误");

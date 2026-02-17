@@ -166,9 +166,7 @@ CREATE TABLE IF NOT EXISTS `{tableName}` (
         {
             // 解析表名中的日期
             if (TryParseTableDate(tableName, out var tableDate) && tableDate < cutoffDate)
-            {
                 await DropTableAsync(tableName);
-            }
         }
     }
 
@@ -191,9 +189,7 @@ CREATE TABLE IF NOT EXISTS `{tableName}` (
             var tableName = reader.GetString(0);
             // 只包含日期格式的表名
             if (TryParseTableDate(tableName, out _))
-            {
                 tables.Add(tableName);
-            }
         }
 
         return tables;
@@ -212,9 +208,7 @@ CREATE TABLE IF NOT EXISTS `{tableName}` (
         {
             var tableName = GetTableName(date);
             if (tableSet.Contains(tableName))
-            {
                 result.Add(tableName);
-            }
         }
 
         return result;

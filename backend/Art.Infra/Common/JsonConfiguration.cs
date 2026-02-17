@@ -122,16 +122,12 @@ public class FlexibleDateTimeConverter : JsonConverter<DateTime>
         foreach (var format in Formats)
         {
             if (DateTime.TryParseExact(str, format, null, System.Globalization.DateTimeStyles.None, out var result))
-            {
                 return result;
-            }
         }
 
         // 最后尝试默认解析
         if (DateTime.TryParse(str, out var dt))
-        {
             return dt;
-        }
 
         throw new JsonException($"无法解析日期格式: {str}");
     }
