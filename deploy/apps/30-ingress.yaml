@@ -60,9 +60,20 @@ spec:
   tls:
     - hosts:
         - aftbay.com
+        - www.aftbay.com
       secretName: docs-tls
   rules:
     - host: aftbay.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: art-docs
+                port:
+                  number: 80
+    - host: www.aftbay.com
       http:
         paths:
           - path: /
