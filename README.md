@@ -15,6 +15,33 @@ art-design-pro 前端， NET 10 + **Minimal API** 后端，采用清洁架构设
 - **Swagger UI** - 自动生成 API 文档
 - **Serilog 日志** - 按日分表写入 MySQL
 
+## 🌐 在线演示
+
+| 项目 | 地址 |
+| --- | --- |
+| 管理后台 | [https://admin.aftbay.com](https://admin.aftbay.com) |
+| Swagger API 文档 | [https://api.aftbay.com/swagger](https://api.aftbay.com/swagger) |
+
+> 演示账号：`admin` / `123456`
+>
+> 演示环境已开启 **Demo 模式**，所有修改操作（新增、编辑、删除、修改密码等）会被拦截，不会实际写入数据库。
+
+### Demo 模式
+
+项目内置了演示模式开关，适用于部署公开 Demo 站点。开启后，用户可以正常浏览和登录，但所有写操作会返回 `403 演示环境，不允许修改数据` 提示。
+
+**开启/关闭方式**：修改 `backend/Art.Api/appsettings.json`：
+
+```json
+{
+  "Settings": {
+    "DemoMode": true   // true 开启演示模式，false 或删除此项则关闭
+  }
+}
+```
+
+也可通过环境变量覆盖：`Settings__DemoMode=true`
+
 ## 📁 项目结构
 
 ```

@@ -165,6 +165,7 @@ app.UseSerilogRequestLogging();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<RequestResponseLoggingMiddleware>();
 app.UseMiddleware<AuthorizationMiddleware>();
+app.UseMiddleware<DemoModeMiddleware>();
 
 // Swagger（任何环境）
 app.UseSwagger();
