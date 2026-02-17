@@ -4,7 +4,7 @@
   "private": true,
   "description": "Art Admin documentation site",
   "scripts": {
-    "dev": "vitepress dev",
+    "dev": "vitepress dev --port 5174",
     "build": "vitepress build",
     "preview": "vitepress preview"
   },

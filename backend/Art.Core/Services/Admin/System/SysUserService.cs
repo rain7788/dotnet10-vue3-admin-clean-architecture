@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using RedisClient = FreeRedis.RedisClient;
 using Microsoft.Extensions.DependencyInjection;
 using Art.Core.Shared;
@@ -21,17 +22,20 @@ public class SysUserService
     private readonly RequestContext _user;
     private readonly TokenService _tokenService;
     private readonly RedisClient _cache;
+    private readonly bool _isDemoMode;
 
     public SysUserService(
         ArtDbContext context,
         RequestContext user,
         TokenService tokenService,
-        RedisClient cache)
+        RedisClient cache,
+        IConfiguration configuration)
     {
         _context = context;
         _user = user;
         _tokenService = tokenService;
         _cache = cache;
+        _isDemoMode = configuration.GetValue<bool>("Settings:DemoMode");
     }
 
     /// <summary>
@@ -44,14 +48,19 @@ public class SysUserService
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(request.Password))
             throw new BadRequestException("用户名和密码不能为空");
 
-        // 检查登录失败次数
+        // 检查登录失败次数（Demo 模式下跳过，避免演示账号被锁定）
         var failKey = CacheKeys.LoginFailCount($"{username}:{DateTime.Now:yyyyMMdd}");
-        var failCountStr = _cache.Get<string>(failKey);
-        var failCount = string.IsNullOrEmpty(failCountStr) ? 0 : int.Parse(failCountStr);
-
+        var failCount = 0;
         const int maxFailCount = 10;
-        if (failCount >= maxFailCount)
-            throw new BadRequestException("今日密码错误次数过多，禁止登录");
+
+        if (!_isDemoMode)
+        {
+            var failCountStr = _cache.Get<string>(failKey);
+            failCount = string.IsNullOrEmpty(failCountStr) ? 0 : int.Parse(failCountStr);
+
+            if (failCount >= maxFailCount)
+                throw new BadRequestException("今日密码错误次数过多，禁止登录");
+        }
 
         // 查询用户
         var user = await _context.SysUser
@@ -66,11 +75,16 @@ public class SysUserService
         // 验证密码（密码使用 SHA256 + Base64 加密存储）
         if (!PasswordHelper.Verify(request.Password, user.Password))
         {
-            // 记录失败次数
-            failCount++;
-            _cache.Set(failKey, failCount.ToString(), (int)TimeSpan.FromDays(1).TotalSeconds);
+            if (!_isDemoMode)
+            {
+                // 记录失败次数
+                failCount++;
+                _cache.Set(failKey, failCount.ToString(), (int)TimeSpan.FromDays(1).TotalSeconds);
+            }
 
-            throw new BadRequestException($"密码错误，今日剩余失败次数：{maxFailCount - failCount}");
+            throw new BadRequestException(_isDemoMode
+                ? "密码错误"
+                : $"密码错误，今日剩余失败次数：{maxFailCount - failCount}");
         }
 
         // 创建 Token

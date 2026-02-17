@@ -63,6 +63,11 @@ pnpm dev
 
 前端运行在 `http://localhost:5173`。
 
+::: tip 文档站
+本文档站（docs 目录）的开发服务器运行在 `http://localhost:5174`，与前端项目端口不冲突。  
+启动文档：`cd docs && pnpm dev`
+:::
+
 ## 5. 登录系统
 
 默认管理员账号：

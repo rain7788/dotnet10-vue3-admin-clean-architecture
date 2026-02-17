@@ -48,6 +48,11 @@ pnpm dev
 
 Frontend runs at `http://localhost:5173`.
 
+::: tip Documentation Site
+The documentation site (docs directory) runs on `http://localhost:5174`, no port conflict with the frontend.  
+Start docs: `cd docs && pnpm dev`
+:::
+
 ## 5. Login
 
 Default admin credentials:
