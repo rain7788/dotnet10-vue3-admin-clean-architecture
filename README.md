@@ -40,6 +40,8 @@ art-design-pro 前端， NET 10 + **Minimal API** 后端，采用清洁架构设
 }
 ```
 
+> 💡 **完全删除演示模式**：如果不需要演示模式功能，可以删除 `backend/Art.Infra/Framework/Middlewares/DemoModeMiddleware.cs` 文件，并在 `backend/Art.Api/Program.cs` 中删除 `app.UseMiddleware<DemoModeMiddleware>();` 这一行。
+
 也可通过环境变量覆盖：`Settings__DemoMode=true`
 
 ## 📁 项目结构
