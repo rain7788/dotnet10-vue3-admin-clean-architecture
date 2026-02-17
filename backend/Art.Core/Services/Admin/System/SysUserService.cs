@@ -135,6 +135,7 @@ public class SysUserService
                 IsSuper = x.IsSuper,
                 Status = x.Status,
                 LastLoginTime = x.LastLoginTime,
+                LastActiveTime = x.LastActiveTime,
                 CreatedTime = x.CreatedTime
             })
             .FirstOrDefaultAsync();
@@ -187,6 +188,12 @@ public class SysUserService
         if (request.Status.HasValue)
             predicate = predicate.And(x => x.Status == request.Status.Value);
 
+        if (request.LastActiveTimeStart.HasValue)
+            predicate = predicate.And(x => x.LastActiveTime >= request.LastActiveTimeStart.Value);
+
+        if (request.LastActiveTimeEnd.HasValue)
+            predicate = predicate.And(x => x.LastActiveTime <= request.LastActiveTimeEnd.Value);
+
         var query = _context.SysUser
             .AsExpandable()
             .Where(predicate)
@@ -211,6 +218,7 @@ public class SysUserService
                 IsSuper = x.IsSuper,
                 Status = x.Status,
                 LastLoginTime = x.LastLoginTime,
+                LastActiveTime = x.LastActiveTime,
                 CreatedTime = x.CreatedTime
             })
             .ToListAsync();
@@ -448,6 +456,11 @@ public class UserInfoResponse
     public DateTime? LastLoginTime { get; set; }
 
     /// <summary>
+    /// 最近活跃时间
+    /// </summary>
+    public DateTime? LastActiveTime { get; set; }
+
+    /// <summary>
     /// 创建时间
     /// </summary>
     public DateTime CreatedTime { get; set; }
@@ -483,6 +496,16 @@ public class UserListRequest
     /// 状态筛选
     /// </summary>
     public ActiveStatus? Status { get; set; }
+
+    /// <summary>
+    /// 最近活跃时间开始（含）
+    /// </summary>
+    public DateTime? LastActiveTimeStart { get; set; }
+
+    /// <summary>
+    /// 最近活跃时间结束（含）
+    /// </summary>
+    public DateTime? LastActiveTimeEnd { get; set; }
 
     /// <summary>
     /// 页码（从 1 开始）
@@ -560,6 +583,11 @@ public class UserListItem
     /// 最后登录时间
     /// </summary>
     public DateTime? LastLoginTime { get; set; }
+
+    /// <summary>
+    /// 最近活跃时间
+    /// </summary>
+    public DateTime? LastActiveTime { get; set; }
 
     /// <summary>
     /// 创建时间

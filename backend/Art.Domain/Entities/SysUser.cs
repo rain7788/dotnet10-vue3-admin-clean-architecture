@@ -54,4 +54,9 @@ public class SysUser : EntityBase
     /// 最后登录时间
     /// </summary>
     public DateTime? LastLoginTime { get; set; }
+
+    /// <summary>
+    /// 最近活跃时间（由中间件在请求鉴权时刷新）
+    /// </summary>
+    public DateTime? LastActiveTime { get; set; }
 }

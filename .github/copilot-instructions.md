@@ -95,6 +95,8 @@ Api → Core → Domain
 public class SysUserService { }
 ```
 
+**规则（避免重复注册）**：只要类型已经标注了 `[Service(...)]`，并且项目调用了 `services.AutoDependencyInjection();`，就不要再在 `Program.cs` 里 `AddScoped/AddTransient/AddSingleton` 重复注册同一个类型（除非你要显式覆盖生命周期/实现或做条件注册）。
+
 ### 路由定义
 
 实现接口自动应用鉴权：

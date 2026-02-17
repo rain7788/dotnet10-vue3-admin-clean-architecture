@@ -9,10 +9,14 @@ namespace Art.Api.Hosting;
 public class TaskConfiguration : ITaskConfigurationProvider
 {
     private readonly DailyWorker _dailyWorker;
+    private readonly DemoMessageQueueWorker _demoMessageQueueWorker;
 
-    public TaskConfiguration(DailyWorker dailyWorker)
+    public TaskConfiguration(
+        DailyWorker dailyWorker,
+        DemoMessageQueueWorker demoMessageQueueWorker)
     {
         _dailyWorker = dailyWorker;
+        _demoMessageQueueWorker = demoMessageQueueWorker;
     }
 
     /// <summary>
@@ -28,14 +32,24 @@ public class TaskConfiguration : ITaskConfigurationProvider
             _dailyWorker.ClearLogs,
             TimeSpan.FromMinutes(21),
             allowedHours: [2, 3],
-            preventDuplicateInterval: TimeSpan.FromHours(12),
-            useDistributedLock: false);
+            preventDuplicateInterval: TimeSpan.FromHours(12));
 
         // 测试任务：用于验证优雅退出（等待几秒）
         taskScheduler.AddRecurringTask(
             _dailyWorker.TestGracefulShutdown,
-            TimeSpan.FromSeconds(15),
-            useDistributedLock: false);
+            TimeSpan.FromSeconds(15));
+
+        // Demo：Redis List 消息队列消费（RPOP）
+        // 参数说明：
+        // - interval：外层调度间隔（多久尝试进入一轮运行窗口/抢锁）
+        // - runDuration：单轮运行窗口时长（到点退出，释放锁，避免长期独占）
+        // - processingInterval：窗口内每次处理后的延迟（避免空队列 CPU 空转 + 控制节奏）
+        taskScheduler.AddLongRunningTask(
+            _demoMessageQueueWorker.ProcessQueue,
+            interval: TimeSpan.FromSeconds(1),
+            processingInterval: TimeSpan.FromMilliseconds(20),
+            runDuration: TimeSpan.FromSeconds(30),
+            taskName: "demo.queue.consume");
 
         // 可以在此处添加更多任务...
     }

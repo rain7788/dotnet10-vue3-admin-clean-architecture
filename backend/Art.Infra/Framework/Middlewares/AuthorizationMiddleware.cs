@@ -244,19 +244,19 @@ public class AuthorizationMiddleware
             var json = JsonSerializer.Serialize(userInfo);
             cache.Set(cacheKey, json, (int)cacheExpire.TotalSeconds);
 
-            // 异步更新最后登录时间（不阻塞主流程，使用独立的 DbContext）
-            _ = UpdateLastLoginTimeAsync(tokenInfo.Type, tokenInfo.UserId);
+            // 异步更新最近活跃时间（不阻塞主流程，使用独立的 DbContext）
+            _ = UpdateLastActiveTimeAsync(tokenInfo.Type, tokenInfo.UserId);
         }
 
         return userInfo;
     }
 
     /// <summary>
-    /// 异步更新用户最后登录时间
-    /// 在缓存刷新时调用，相当于每10分钟更新一次
+    /// 异步更新用户最近活跃时间
+    /// 仅在 GetUserInfo 缓存未命中并成功从 DB 查询到用户后触发
     /// 使用 IDbContextFactory 创建独立的 DbContext，避免请求结束后被释放
     /// </summary>
-    private async Task UpdateLastLoginTimeAsync(TokenType tokenType, long userId)
+    private async Task UpdateLastActiveTimeAsync(TokenType tokenType, long userId)
     {
         try
         {
@@ -267,20 +267,19 @@ public class AuthorizationMiddleware
             {
                 await dbContext.SysUser
                     .Where(x => x.Id == userId)
-                    .ExecuteUpdateAsync(x => x.SetProperty(u => u.LastLoginTime, now));
+                    .ExecuteUpdateAsync(x => x.SetProperty(u => u.LastActiveTime, now));
             }
             // 如果后续有玩家端，可以在这里扩展
             // else if (tokenType == TokenType.玩家端)
             // {
             //     await dbContext.Player
             //         .Where(x => x.Id == userId)
-            //         .ExecuteUpdateAsync(x => x.SetProperty(p => p.LastLoginTime, now));
+            //         .ExecuteUpdateAsync(x => x.SetProperty(p => p.LastActiveTime, now));
             // }
         }
-        catch (Exception ex)
+        catch
         {
-            // 更新失败不影响主流程，仅记录日志
-            _logger.LogWarning(ex, "更新用户最后登录时间失败: UserId={UserId}, TokenType={TokenType}", userId, tokenType);
+            // 更新失败不影响主流程，按约定不记录日志
         }
     }
 

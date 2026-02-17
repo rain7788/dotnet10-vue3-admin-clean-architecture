@@ -80,9 +80,6 @@ services.AddMemoryCache();
 // JSON 宽容配置
 services.ConfigureHttpJsonOptions(JsonConfiguration.ConfigureJsonOptions);
 
-// DailyWorker（用于后台任务）
-services.AddTransient<DailyWorker>();
-
 // 任务配置提供器
 services.AddSingleton<ITaskConfigurationProvider, TaskConfiguration>();
 

@@ -56,6 +56,7 @@ CREATE TABLE `sys_user` (
   `avatar` varchar(200) DEFAULT NULL COMMENT '头像',
   `status` int NOT NULL DEFAULT 1 COMMENT '状态：0-不可用，1-正常',
   `last_login_time` datetime(6) DEFAULT NULL COMMENT '最后登录时间',
+  `last_active_time` datetime(6) DEFAULT NULL COMMENT '最近活跃时间',
   `created_time` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '创建时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_sys_user_username` (`username`),
