@@ -47,7 +47,7 @@ public class TaskConfiguration : ITaskConfigurationProvider
         taskScheduler.AddLongRunningTask(
             _demoMessageQueueWorker.ProcessQueue,
             interval: TimeSpan.FromSeconds(1),
-            processingInterval: TimeSpan.FromMilliseconds(20),
+            processingInterval: TimeSpan.FromMilliseconds(100),
             runDuration: TimeSpan.FromSeconds(30),
             taskName: "demo.queue.consume");
 

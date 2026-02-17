@@ -24,3 +24,42 @@ export function fetchQueueStatus() {
         url: '/admin/demo/queue/status'
     })
 }
+
+// ===================== Demo 分布式锁 =====================
+
+// TryLock：立即尝试获取锁
+export function fetchTryLock(data: { holdSeconds?: number }) {
+    return request.post<{
+        acquired: boolean
+        message: string
+        lockKey: string
+        heldForMs: number
+    }>({
+        url: '/admin/demo/lock/try',
+        data
+    })
+}
+
+// LockAsync：等待获取锁
+export function fetchWaitLock(data: { holdSeconds?: number; waitSeconds?: number }) {
+    return request.post<{
+        acquired: boolean
+        message: string
+        lockKey: string
+        heldForMs: number
+    }>({
+        url: '/admin/demo/lock/wait',
+        data
+    })
+}
+
+// 查询锁状态
+export function fetchLockStatus() {
+    return request.get<{
+        isLocked: boolean
+        lockKey: string
+        remainingTtlSeconds: number
+    }>({
+        url: '/admin/demo/lock/status'
+    })
+}
