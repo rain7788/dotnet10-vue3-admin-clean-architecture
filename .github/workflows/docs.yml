@@ -1,55 +1,55 @@
-name: Deploy Docs
+name: build-docs-ghcr
 
 on:
   push:
     branches: [main]
-    paths: ['docs/**']
-  workflow_dispatch:
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch: {}
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
+  packages: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
         with:
-          fetch-depth: 0
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
+      - name: Build and push (docs)
+        uses: docker/build-push-action@v6
         with:
-          node-version: 22
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: latest
-
-      - name: Install dependencies
-        working-directory: ./docs
-        run: pnpm install --frozen-lockfile
-
-      - name: Build docs
-        working-directory: ./docs
-        run: pnpm build
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/.vitepress/dist
+          context: ./docs
+          file: ./docs/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/rain7788/art-docs:latest
+            ghcr.io/rain7788/art-docs:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Deploy to k3s
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: root
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            k3s kubectl -n apps rollout restart deploy art-docs
+            k3s kubectl -n apps rollout status deploy art-docs --timeout=120s
