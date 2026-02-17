@@ -4,7 +4,7 @@
  * 负责动态加载 Vue 组件，包含错误处理和容错机制
  *
  * @module router/core/ComponentLoader
- * @author Art Design Pro Team
+ * @author Art Admin Team
  */
 
 import { h, type Component } from 'vue'

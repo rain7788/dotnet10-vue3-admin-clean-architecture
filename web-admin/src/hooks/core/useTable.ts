@@ -14,7 +14,7 @@
  * 6. 列配置管理 - 动态显示/隐藏列、列排序、配置持久化、批量操作（可选）
  *
  * @module useTable
- * @author Art Design Pro Team
+ * @author Art Admin Team
  */
 
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick, readonly } from 'vue'
@@ -423,7 +423,7 @@ function useTableImpl<TApiFn extends (params: any) => Promise<any>>(
   // 分页获取数据 (重置到第一页) - 专门用于搜索场景
   const getDataByPage = async (params?: Partial<TParams>): Promise<ApiResponse<TRecord> | void> => {
     pagination.current = 1
-    ;(searchParams as Record<string, unknown>)[pageKey] = 1
+      ; (searchParams as Record<string, unknown>)[pageKey] = 1
 
     // 搜索时清空当前搜索条件的缓存，确保获取最新数据
     clearCache(CacheInvalidationStrategy.CLEAR_CURRENT, '搜索数据')
@@ -537,7 +537,7 @@ function useTableImpl<TApiFn extends (params: any) => Promise<any>>(
   const refreshCreate = async (): Promise<void> => {
     debouncedGetDataByPage.cancel()
     pagination.current = 1
-    ;(searchParams as Record<string, unknown>)[pageKey] = 1
+      ; (searchParams as Record<string, unknown>)[pageKey] = 1
     clearCache(CacheInvalidationStrategy.CLEAR_PAGINATION, '新增数据')
     await getData()
   }
@@ -559,7 +559,7 @@ function useTableImpl<TApiFn extends (params: any) => Promise<any>>(
     // 如果当前页为空且不是第一页，回到上一页
     if (data.value.length === 0 && current > 1) {
       pagination.current = current - 1
-      ;(searchParams as Record<string, unknown>)[pageKey] = current - 1
+        ; (searchParams as Record<string, unknown>)[pageKey] = current - 1
       await getData()
     }
   }

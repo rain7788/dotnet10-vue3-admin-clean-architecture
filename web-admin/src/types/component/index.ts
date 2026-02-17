@@ -18,7 +18,7 @@
  * - 组件事件参数类型
  *
  * @module types/component/index
- * @author Art Design Pro Team
+ * @author Art Admin Team
  */
 
 // 搜索组件类型

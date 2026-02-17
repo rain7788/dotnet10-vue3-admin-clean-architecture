@@ -2,7 +2,7 @@
 <!-- art-full-height 自动计算出页面剩余高度 -->
 <!-- art-table-card 一个符合系统样式的 class，同时自动撑满剩余高度 -->
 <!-- 更多 useTable 使用示例请移步至 功能示例 下面的高级表格示例或者查看官方文档 -->
-<!-- useTable 文档：https://www.artd.pro/docs/zh/guide/hooks/use-table.html -->
+<!-- useTable 文档：请查看项目文档 -->
 <template>
   <div class="user-page art-full-height">
     <!-- 搜索栏 -->

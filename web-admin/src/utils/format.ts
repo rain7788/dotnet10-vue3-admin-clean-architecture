@@ -2,7 +2,7 @@
  * 通用格式化工具函数
  *
  * @module utils/format
- * @author Art Design Pro Team
+ * @author Art Admin Team
  */
 
 /**

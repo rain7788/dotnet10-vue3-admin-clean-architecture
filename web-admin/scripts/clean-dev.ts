@@ -93,7 +93,7 @@ function createModernBanner() {
     fmt.gradient('  ║                                                                  ║')
   )
   console.log(
-    `  ║               ${icons.rocket} ${fmt.title('ART DESIGN PRO')} ${fmt.subtitle('· 代码精简程序')} ${icons.magic}                ║`
+    `  ║               ${icons.rocket} ${fmt.title('Art Admin')} ${fmt.subtitle('· 代码精简程序')} ${icons.magic}                ║`
   )
   console.log(
     `  ║               ${fmt.dim('为项目移除演示数据，快速切换至开发模式')}             ║`
@@ -724,8 +724,8 @@ async function showStats() {
     `${fmt.info('涉及路径')}: ${fmt.highlight(stats.deletedPaths.toString())} 个目录/文件`,
     ...(stats.failedPaths > 0
       ? [
-          `${icons.error} ${fmt.error('删除失败')}: ${fmt.highlight(stats.failedPaths.toString())} 个路径`
-        ]
+        `${icons.error} ${fmt.error('删除失败')}: ${fmt.highlight(stats.failedPaths.toString())} 个路径`
+      ]
       : []),
     `${fmt.info('耗时')}: ${fmt.highlight(seconds)} 秒`
   ])

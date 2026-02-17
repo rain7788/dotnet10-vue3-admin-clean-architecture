@@ -25,11 +25,6 @@
         <ArtIconButton v-if="shouldShowRefreshButton" icon="ri:refresh-line" class="!ml-3 refresh-btn max-sm:!hidden"
           :style="{ marginLeft: !isLeftMenu ? '10px' : '0' }" @click="reload" />
 
-        <!-- 快速入口 -->
-        <ArtFastEnter v-if="shouldShowFastEnter && width >= headerBarFastEnterMinWidth">
-          <ArtIconButton icon="ri:function-line" class="ml-3" />
-        </ArtFastEnter>
-
         <!-- 面包屑 -->
         <ArtBreadcrumb v-if="(shouldShowBreadcrumb && isLeftMenu) || (shouldShowBreadcrumb && isDualMenu)" />
 
@@ -98,7 +93,7 @@
             </template>
             <template #default>
               <p>{{ $t('topBar.guide.title')
-                }}<span :style="{ color: systemThemeColor }"> {{ $t('topBar.guide.theme') }} </span>、 <span
+              }}<span :style="{ color: systemThemeColor }"> {{ $t('topBar.guide.theme') }} </span>、 <span
                   :style="{ color: systemThemeColor }"> {{ $t('topBar.guide.menu') }} </span>{{
                     $t('topBar.guide.description') }}
               </p>
@@ -156,7 +151,6 @@ const menuStore = useMenuStore()
 const {
   shouldShowMenuButton,
   shouldShowRefreshButton,
-  shouldShowFastEnter,
   shouldShowBreadcrumb,
   shouldShowGlobalSearch,
   shouldShowFullscreen,
@@ -164,8 +158,7 @@ const {
   shouldShowChat,
   shouldShowLanguage,
   shouldShowSettings,
-  shouldShowThemeToggle,
-  fastEnterMinWidth: headerBarFastEnterMinWidth
+  shouldShowThemeToggle
 } = useHeaderBar()
 
 const { menuOpen, systemThemeColor, showSettingGuide, menuType, isDark, tabStyle } =

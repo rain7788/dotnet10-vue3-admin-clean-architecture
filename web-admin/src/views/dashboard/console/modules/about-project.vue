@@ -8,10 +8,7 @@
       <div class="flex flex-wrap gap-3.5 max-w-150 mt-9">
         <div
           class="w-60 flex-cb h-12.5 px-3.5 border border-g-300 c-p rounded-lg text-sm bg-g-100 duration-300 hover:-translate-y-1 max-sm:w-full"
-          v-for="link in linkList"
-          :key="link.label"
-          @click="goPage(link.url)"
-        >
+          v-for="link in linkList" :key="link.label" @click="goPage(link.url)">
           <span class="text-g-700">{{ link.label }}</span>
           <ArtSvgIcon icon="ri:arrow-right-s-line" class="text-lg text-g-600" />
         </div>
@@ -22,23 +19,22 @@
 </template>
 
 <script setup lang="ts">
-  import AppConfig from '@/config'
-  import { WEB_LINKS } from '@/utils/constants'
+import AppConfig from '@/config'
+import { WEB_LINKS } from '@/utils/constants'
 
-  const systemName = AppConfig.systemInfo.name
+const systemName = AppConfig.systemInfo.name
 
-  const linkList = [
-    { label: '项目官网', url: WEB_LINKS.DOCS },
-    { label: '文档', url: WEB_LINKS.INTRODUCE },
-    { label: 'Github', url: WEB_LINKS.GITHUB_HOME },
-    { label: '哔哩哔哩', url: WEB_LINKS.BILIBILI }
-  ]
+const linkList = [
+  { label: '项目官网', url: WEB_LINKS.DOCS },
+  { label: '文档', url: WEB_LINKS.INTRODUCE },
+  { label: 'Github', url: WEB_LINKS.GITHUB_HOME }
+]
 
-  /**
-   * 在新标签页中打开指定 URL
-   * @param url 要打开的网页地址
-   */
-  const goPage = (url: string): void => {
-    window.open(url, '_blank', 'noopener,noreferrer')
-  }
+/**
+ * 在新标签页中打开指定 URL
+ * @param url 要打开的网页地址
+ */
+const goPage = (url: string): void => {
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
 </script>
