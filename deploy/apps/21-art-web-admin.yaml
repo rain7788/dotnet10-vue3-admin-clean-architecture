@@ -37,8 +37,8 @@ spec:
               value: https://api.aftbay.com
           resources:
             requests:
-              cpu: 50m
-              memory: 64Mi
+              cpu: 20m
+              memory: 32Mi
             limits:
-              cpu: 300m
-              memory: 256Mi
+              cpu: 100m
+              memory: 128Mi
