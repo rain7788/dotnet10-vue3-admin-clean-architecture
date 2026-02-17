@@ -69,6 +69,13 @@ Art Admin 是一个 **AI 友好的全栈后台管理框架**，基于 **.NET 10 
 - **管理后台**: [https://admin.aftbay.com](https://admin.aftbay.com)
 - **Swagger API**: [https://api.aftbay.com/swagger](https://api.aftbay.com/swagger)
 
+### API 文档（SwaggerSloop）
+
+本项目的 Swagger UI 基于作者自研开源项目 **SwaggerSloop**，提供**高颜值**的 API 文档体验，并支持多分组与鉴权调试：
+
+- 项目地址：[https://github.com/rain7788/SwaggerSloop](https://github.com/rain7788/SwaggerSloop)
+- 使用说明：[/zh/backend/swagger](/zh/backend/swagger)
+
 > 演示账号：`admin` / `123456`
 >
 > 演示环境已开启 **Demo 模式**，所有修改操作（新增、编辑、删除、修改密码等）会被拦截，不会实际写入数据库。

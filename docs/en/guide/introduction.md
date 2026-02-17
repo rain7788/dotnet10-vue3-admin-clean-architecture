@@ -69,6 +69,13 @@ The framework provides three independent API groups that can be freely extended:
 - **Admin Panel**: [https://admin.aftbay.com](https://admin.aftbay.com)
 - **Swagger API**: [https://api.aftbay.com/swagger](https://api.aftbay.com/swagger)
 
+### API Docs (SwaggerSloop)
+
+The Swagger UI in this project is powered by **SwaggerSloop**, an open-source Swagger enhancement middleware developed by the Art Admin author, providing a **beautiful** API docs experience with multi-group navigation and auth debugging:
+
+- Project repo: [https://github.com/rain7788/SwaggerSloop](https://github.com/rain7788/SwaggerSloop)
+- Usage guide: [/en/backend/swagger](/en/backend/swagger)
+
 > Demo account: `admin` / `123456`
 >
 > The demo environment has **Demo Mode** enabled — all write operations (create, edit, delete, change password) are intercepted and won't persist to the database.
