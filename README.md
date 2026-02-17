@@ -19,14 +19,14 @@ art-design-pro 前端， NET 10 + **Minimal API** 后端，采用清洁架构设
 
 | 项目 | 地址 |
 | --- | --- |
-| 管理后台 | [https://admin.aftbay.com](https://admin.aftbay.com) |
-| Swagger API 文档 | [https://api.aftbay.com/swagger](https://api.aftbay.com/swagger) |
+| 管理后台 | <a href="https://admin.aftbay.com" target="_blank">https://admin.aftbay.com</a> |
+| Swagger API 文档 | <a href="https://api.aftbay.com/swagger" target="_blank">https://api.aftbay.com/swagger</a> |
 
 > 演示账号：`admin` / `123456`
 >
 > 演示环境已开启 **Demo 模式**，所有修改操作（新增、编辑、删除、修改密码等）会被拦截，不会实际写入数据库。
 >
-> 🎨 **查看更多前端效果**：如果想看完整的前端界面演示，请访问 [https://www.artd.pro/](https://www.artd.pro/)
+> 🎨 **查看更多前端效果**：如果想看完整的前端界面演示，请访问 <a href="https://www.artd.pro/" target="_blank">https://www.artd.pro/</a>
 
 ### Demo 模式
 
