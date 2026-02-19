@@ -71,7 +71,7 @@ const {
   core: {
     apiFn: (params: any) => {
       // 转换参数格式
-      const { current, size, startTime, endTime, statusCode, ...rest } = params
+      const { pageIndex, pageSize, startTime, endTime, statusCode, ...rest } = params
 
       // 处理 QueryDate 和时间范围
       let queryDate = new Date().toISOString().split('T')[0] // 默认今天
@@ -98,8 +98,8 @@ const {
       const transformedParams: SysLogListRequest = {
         ...rest,
         queryDate,
-        pageSize: size,
-        pageIndex: current
+        pageSize,
+        pageIndex
       }
 
       // 添加时间范围
