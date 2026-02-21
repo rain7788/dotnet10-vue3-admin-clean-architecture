@@ -1,4 +1,3 @@
-using System.Net;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -55,7 +54,7 @@ public class AuthorizationMiddleware
         requestContext.AccessToken = token;
         requestContext.RequestId = context.TraceIdentifier;
         requestContext.UserAgent = context.Request.Headers.UserAgent.ToString();
-        requestContext.RequestIp = GetClientIpAddress(requestContext, context);
+        requestContext.RequestIp = GetClientIpAddress(context);
 
         // 提取租户 ID（从 Header 或其他来源）
         ExtractTenantId(context, requestContext);
@@ -124,30 +123,25 @@ public class AuthorizationMiddleware
     /// <summary>
     /// 获取客户端 IP 地址
     /// </summary>
-    private static string? GetClientIpAddress(RequestContext requestContext, HttpContext context)
+    private static string? GetClientIpAddress(HttpContext context)
     {
-        string? ip = null;
-
-        // 优先使用代理头中的客户端真实 IP
-        var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
-        if (!string.IsNullOrWhiteSpace(forwarded))
-            ip = forwarded.Split(',').FirstOrDefault()?.Trim();
-
-        if (string.IsNullOrWhiteSpace(ip))
+        var remoteIp = context.Connection.RemoteIpAddress;
+        if (remoteIp != null)
         {
-            var realIp = context.Request.Headers["X-Real-IP"].ToString();
-            if (!string.IsNullOrWhiteSpace(realIp))
-                ip = realIp.Trim();
+            if (remoteIp.IsIPv4MappedToIPv6)
+                remoteIp = remoteIp.MapToIPv4();
+
+            return remoteIp.ToString();
         }
 
-        if (string.IsNullOrWhiteSpace(ip) && !string.IsNullOrWhiteSpace(requestContext.RequestIp))
-            ip = requestContext.RequestIp;
+        var forwardedFor = context.Request.Headers["X-Forwarded-For"].ToString();
+        if (string.IsNullOrWhiteSpace(forwardedFor))
+            return null;
 
-        if (string.IsNullOrWhiteSpace(ip))
-            ip = context.Connection.RemoteIpAddress?.ToString();
-
-        // 统一处理 IPv4 映射地址，去掉 "::ffff:" 前缀
-        return ip?.Replace("::ffff:", string.Empty);
+        var firstIp = forwardedFor.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+        return string.IsNullOrWhiteSpace(firstIp)
+            ? null
+            : firstIp.Replace("::ffff:", string.Empty);
     }
 
     private static string ExtractToken(HttpContext context)
