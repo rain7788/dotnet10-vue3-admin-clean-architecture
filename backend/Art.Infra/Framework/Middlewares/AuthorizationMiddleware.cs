@@ -54,8 +54,8 @@ public class AuthorizationMiddleware
         var token = ExtractToken(context);
         requestContext.AccessToken = token;
         requestContext.RequestId = context.TraceIdentifier;
-        requestContext.RequestIp = context.Connection.RemoteIpAddress?.ToString();
         requestContext.UserAgent = context.Request.Headers.UserAgent.ToString();
+        requestContext.RequestIp = GetClientIpAddress(requestContext, context);
 
         // 提取租户 ID（从 Header 或其他来源）
         ExtractTenantId(context, requestContext);
@@ -85,7 +85,7 @@ public class AuthorizationMiddleware
         // 记录用户信息到 Serilog DiagnosticContext（用于日志字段提取）
         _diagnosticContext.Set("UserId", requestContext.Id > 0 ? requestContext.Id.ToString() : null);
         _diagnosticContext.Set("UserName", requestContext.Name);
-        _diagnosticContext.Set("IpAddress", GetClientIpAddress(requestContext, context));
+        _diagnosticContext.Set("IpAddress", requestContext.RequestIp);
 
         // 日志记录（使用 LoggerScope）
         using (_logger.BeginScope(new Dictionary<string, object?>
@@ -128,18 +128,23 @@ public class AuthorizationMiddleware
     {
         string? ip = null;
 
-        // 优先使用 RequestContext 中已设置的
-        if (!string.IsNullOrWhiteSpace(requestContext.RequestIp))
-            ip = requestContext.RequestIp;
-        else
+        // 优先使用代理头中的客户端真实 IP
+        var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
+        if (!string.IsNullOrWhiteSpace(forwarded))
+            ip = forwarded.Split(',').FirstOrDefault()?.Trim();
+
+        if (string.IsNullOrWhiteSpace(ip))
         {
-            // 优先使用 X-Forwarded-For
-            var forwarded = context.Request.Headers["X-Forwarded-For"].ToString();
-            if (!string.IsNullOrWhiteSpace(forwarded))
-                ip = forwarded.Split(',').FirstOrDefault()?.Trim();
-            else
-                ip = context.Connection.RemoteIpAddress?.ToString();
+            var realIp = context.Request.Headers["X-Real-IP"].ToString();
+            if (!string.IsNullOrWhiteSpace(realIp))
+                ip = realIp.Trim();
         }
+
+        if (string.IsNullOrWhiteSpace(ip) && !string.IsNullOrWhiteSpace(requestContext.RequestIp))
+            ip = requestContext.RequestIp;
+
+        if (string.IsNullOrWhiteSpace(ip))
+            ip = context.Connection.RemoteIpAddress?.ToString();
 
         // 统一处理 IPv4 映射地址，去掉 "::ffff:" 前缀
         return ip?.Replace("::ffff:", string.Empty);

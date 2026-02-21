@@ -18,6 +18,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Art.Infra.Cache;
 using SwaggerSloop;
 using Art.Infra.Extensions;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -76,6 +77,13 @@ else
 }
 
 services.AddMemoryCache();
+
+services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // JSON 宽容配置
 services.ConfigureHttpJsonOptions(JsonConfiguration.ConfigureJsonOptions);
@@ -155,6 +163,7 @@ app.Lifetime.ApplicationStopped.Register(() =>
 // 这样在 Serilog 写入日志时，IDiagnosticContext 中已经包含了 Request/Response
 
 app.UseCors();
+app.UseForwardedHeaders();
 app.UseSerilogRequestLogging();
 
 app.UseMiddleware<ExceptionMiddleware>();

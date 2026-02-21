@@ -19,6 +19,7 @@ art-design-pro 前端， NET 10 + **Minimal API** 后端，采用清洁架构设
 
 | 项目 | 地址 |
 | --- | --- |
+| 项目主页 | [https://www.aftbay.com](https://www.aftbay.com) |
 | 管理后台 | [https://admin.aftbay.com](https://admin.aftbay.com) |
 | Swagger API 文档 | [https://api.aftbay.com/swagger](https://api.aftbay.com/swagger) |
 
@@ -360,7 +361,7 @@ public async Task ProcessData(CancellationToken cancel)
 
 ## 🎨 前端
 
-前端使用 **Art Admin v3.0.1**，一个基于 Vue 3 的现代化后台管理模板。
+前端使用 **Art Admin v3.0.1**，一个基于 Vue 3 的现代化后台管理模板（源网站：**ARTD.pro**）。
 
 📚 文档地址: [https://www.artd.pro/docs](https://www.artd.pro/docs)
 
