@@ -108,7 +108,7 @@ export default defineConfig({
                 },
                 footer: {
                     message: '根据 MIT 许可证发布',
-                    copyright: 'Copyright © 2024-present Art Admin',
+                    copyright: 'Copyright © 2024-present Art Admin<br/><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" class="icp-link">冀ICP备2026005006号-1</a>&nbsp;&nbsp;<a href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=13010802002695" target="_blank" rel="noopener noreferrer" class="icp-link"><img src="/beian.png" alt="" class="beian-icon" />冀公网安备13010802002695号</a>',
                 },
             },
         },
@@ -197,7 +197,7 @@ export default defineConfig({
                 },
                 footer: {
                     message: 'Released under the MIT License',
-                    copyright: 'Copyright © 2024-present Art Admin',
+                    copyright: 'Copyright © 2024-present Art Admin<br/><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" class="icp-link">冀ICP备2026005006号-1</a>&nbsp;&nbsp;<a href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=13010802002695" target="_blank" rel="noopener noreferrer" class="icp-link"><img src="/beian.png" alt="" class="beian-icon" />冀公网安备13010802002695号</a>',
                 },
             },
         },

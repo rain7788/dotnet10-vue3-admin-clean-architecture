@@ -49,3 +49,26 @@
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
+
+/* 备案信息样式 */
+.icp-link {
+  color: var(--vp-c-text-2) !important;
+  text-decoration: none !important;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  transition: color 0.25s;
+}
+
+.icp-link:hover {
+  color: var(--vp-c-brand-1) !important;
+}
+
+.beian-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 2px;
+}
