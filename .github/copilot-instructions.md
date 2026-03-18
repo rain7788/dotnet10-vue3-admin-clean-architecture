@@ -103,7 +103,7 @@ var items = await query.OrderByDescending(x => x.Id)
 
 ---
 
-## 💻 前端（art-design-pro 3.0.1）
+## 💻 前端（art-design-pro 3.0.2）
 
 **技术栈**: Vue 3 `<script setup>` + Vite + Element Plus + Pinia + TailwindCSS 4 + Axios
 
