@@ -135,7 +135,7 @@ if (props.uploadConfig?.isCustomUpload && props.uploadConfig?.server && editorCo
         url: props.uploadConfig?.server,
         data: formData,
         headers: {
-          'Content-Type':'multipart/form-data',
+          'Content-Type': 'multipart/form-data',
           Authorization: userStore.accessToken
         }
       })

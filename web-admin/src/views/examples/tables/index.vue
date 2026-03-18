@@ -200,7 +200,7 @@
             <div class="flex-1 min-w-0">
               <p class="m-0 overflow-hidden font-medium text-ellipsis whitespace-nowrap">{{
                 row.userName
-              }}</p>
+                }}</p>
               <p class="m-0 mt-1 overflow-hidden text-xs text-g-700 text-ellipsis whitespace-nowrap">{{ row.userEmail }}
               </p>
             </div>

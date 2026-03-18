@@ -28,8 +28,8 @@
           <div class="mt-1.5 w-full">
             <div class="box mt-2 h-12 c-p flex-cb rounded-custom-sm bg-g-200/80 px-4 text-sm text-g-800"
               v-for="(item, index) in historyResult" :key="index" :class="historyHIndex === index
-                  ? 'highlighted !bg-theme/70 !text-white [&_.selected-icon]:!text-white'
-                  : ''
+                ? 'highlighted !bg-theme/70 !text-white [&_.selected-icon]:!text-white'
+                : ''
                 " @click="searchGoPage(item)" @mouseenter="highlightOnHoverHistory(index)">
               {{ formatMenuTitle(item.meta.title) }}
               <div class="size-5 selected-icon select-none rounded-full text-g-500 flex-cc c-p"

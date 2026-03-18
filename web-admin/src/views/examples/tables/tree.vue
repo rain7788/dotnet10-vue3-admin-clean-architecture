@@ -22,7 +22,7 @@
             <template #left>
               <ElSpace wrap>
                 <ElButton @click="showButtons = !showButtons" v-ripple type="primary" plain>{{ showButtons ? '收起' : '展开'
-                  }}按钮组</ElButton>
+                }}按钮组</ElButton>
                 <ElButton v-show="showButtons" v-ripple v-for="value in 12" :key="value">表格自适应</ElButton>
               </ElSpace>
             </template>
