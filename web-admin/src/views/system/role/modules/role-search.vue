@@ -114,8 +114,8 @@
    * 处理搜索事件
    * 验证表单后触发搜索
    */
-  const handleSearch = async () => {
+  const handleSearch = async (params: Record<string, any>) => {
     await searchBarRef.value.validate()
-    emit('search', formData.value)
+    emit('search', params)
   }
 </script>

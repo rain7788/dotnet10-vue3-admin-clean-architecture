@@ -123,7 +123,7 @@
       @search="handleSearch" @reset="handleReset" />
 
     <!-- 表格区域 -->
-    <ElCard class="flex-1 art-table-card" shadow="never" style="margin-top: 0">
+    <ElCard class="flex-1 art-table-card" style="margin-top: 0">
       <template #header>
         <div class="flex-cb">
           <h4 class="m-0">用户数据表格</h4>

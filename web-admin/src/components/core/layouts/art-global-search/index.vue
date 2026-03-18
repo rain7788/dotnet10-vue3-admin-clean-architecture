@@ -71,11 +71,11 @@ import { Search } from '@element-plus/icons-vue'
 import { mittBus } from '@/utils/sys'
 import { useMenuStore } from '@/store/modules/menu'
 import { formatMenuTitle } from '@/utils/router'
+import { handleMenuJump } from '@/utils/navigation'
 import { type ScrollbarInstance } from 'element-plus'
 
 defineOptions({ name: 'ArtGlobalSearch' })
 
-const router = useRouter()
 const userStore = useUserStore()
 const { menuList } = storeToRefs(useMenuStore())
 
@@ -160,7 +160,10 @@ const flattenAndFilterMenuItems = (items: AppRouteRecord[], val: string): AppRou
       return
     }
 
-    if (lowerItemTitle.includes(lowerVal) && item.path) {
+    if (
+      lowerItemTitle.includes(lowerVal) &&
+      ((item.path && item.path.trim()) || item.meta.link || item.meta.isIframe)
+    ) {
       result.push({ ...item, children: undefined })
     }
   }
@@ -270,7 +273,7 @@ const searchBlur = () => {
 const searchGoPage = (item: AppRouteRecord) => {
   showSearchDialog.value = false
   addHistory(item)
-  router.push(item.path)
+  handleMenuJump(item)
   searchVal.value = ''
   searchResult.value = []
 }
@@ -283,8 +286,10 @@ const updateHistory = () => {
 }
 
 const addHistory = (item: AppRouteRecord) => {
+  const itemKey = item.path || String(item.meta.link || '')
   const hasItemIndex = historyResult.value.findIndex(
-    (historyItem: AppRouteRecord) => historyItem.path === item.path
+    (historyItem: AppRouteRecord) =>
+      (historyItem.path || String(historyItem.meta.link || '')) === itemKey
   )
 
   if (hasItemIndex !== -1) {

@@ -5,7 +5,7 @@
     <ArtSearchBar v-model="formFilters" :items="formItems" :showExpand="false" @reset="handleReset"
       @search="handleSearch" />
 
-    <ElCard class="art-table-card" shadow="never">
+    <ElCard class="art-table-card">
       <!-- 表格头部 -->
       <ArtTableHeader :showZebra="false" :loading="loading" v-model:columns="columnChecks" @refresh="handleRefresh">
         <template #left>

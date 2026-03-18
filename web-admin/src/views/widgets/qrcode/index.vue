@@ -2,7 +2,7 @@
   <div class="page-content">
     <ElRow :gutter="20">
       <ElCol :span="6" :md="12" :sm="12" :xs="24" v-for="preset in qrcodePresets" :key="preset.title">
-        <ElCard class="mb-5" shadow="never">
+        <ElCard class="mb-5">
           <template #header>
             <div>
               <span class="text-base font-bold">{{ preset.title }}</span>

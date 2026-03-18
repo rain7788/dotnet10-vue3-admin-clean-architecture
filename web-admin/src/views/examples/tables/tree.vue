@@ -17,7 +17,7 @@
       <div class="flex flex-col flex-grow min-w-0">
         <UserSearch v-model="defaultFilter" />
 
-        <ElCard class="flex flex-col flex-1 min-h-0 art-table-card" shadow="never">
+        <ElCard class="flex flex-col flex-1 min-h-0 art-table-card">
           <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
             <template #left>
               <ElSpace wrap>

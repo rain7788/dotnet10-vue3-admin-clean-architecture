@@ -15,8 +15,11 @@ import { useUserStore } from '@/store/modules/user'
 import EmojiText from '@/utils/ui/emojo'
 import { IDomEditor, IToolbarConfig, IEditorConfig } from '@wangeditor/editor'
 import { getApiUrl } from '@/utils/appConfig'
+import request from '@/utils/http'
 
 defineOptions({ name: 'ArtWangEditor' })
+
+type InsertFnType = (url: string, alt: string, href: string) => void
 
 // Props 定义
 interface Props {
@@ -37,6 +40,8 @@ interface Props {
     maxFileSize?: number
     maxNumberOfFiles?: number
     server?: string
+    // 是否开启自定义上传
+    isCustomUpload?: boolean
   }
 }
 
@@ -44,7 +49,8 @@ const props = withDefaults(defineProps<Props>(), {
   height: '500px',
   mode: 'default',
   placeholder: '请输入内容...',
-  excludeKeys: () => ['fontFamily']
+  excludeKeys: () => ['fontFamily'],
+  isCustomUpload: false
 })
 
 const modelValue = defineModel<string>({ required: true })
@@ -114,6 +120,37 @@ const editorConfig: Partial<IEditorConfig> = {
         console.error('图片上传失败:', err, res)
         ElMessage.error(`图片上传失败 ${EmojiText[500]}`)
       }
+    }
+  }
+}
+
+// 自定义上传
+if (props.uploadConfig?.isCustomUpload && props.uploadConfig?.server && editorConfig.MENU_CONF) {
+  editorConfig.MENU_CONF.uploadImage.customUpload = async (file: File, insertFn: InsertFnType) => {
+    try {
+      const formData = new FormData()
+      formData.append(mergedUploadConfig.value.fieldName, file)
+
+      const response = await request.post<{ url: string; alt: string; href: string }>({
+        url: props.uploadConfig?.server,
+        data: formData,
+        headers: {
+          'Content-Type':'multipart/form-data',
+          Authorization: userStore.accessToken
+        }
+      })
+
+      const { url, alt, href } = response
+
+      if (!url) {
+        throw new Error('上传失败，请检查服务端配置')
+      }
+
+      insertFn(url, alt, href)
+      ElMessage.success(`图片上传成功 ${EmojiText[200]}`)
+    } catch (error) {
+      console.error('图片上传失败:', error)
+      ElMessage.error(`图片上传失败 ${EmojiText[500]}`)
     }
   }
 }
