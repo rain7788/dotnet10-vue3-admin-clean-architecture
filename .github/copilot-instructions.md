@@ -101,6 +101,35 @@ var items = await query.OrderByDescending(x => x.Id)
 - 分页请求含 `int? PageIndex = 1` + `int? PageSize = 20`
 - 分页响应含 `int Total` + `List<T> Items`
 
+### 并发控制（余额/积分/关键状态变更）
+
+涉及余额、积分、库存等关键字段更新时，必须用事务 + `FOR UPDATE` 行锁查询后再操作，并在实体关键字段加 `[ConcurrencyCheck]` 兜底。
+
+```csharp
+// 实体：关键字段加 [ConcurrencyCheck]
+public class WalletEntity : EntityBase
+{
+    [ConcurrencyCheck]
+    public decimal Balance { get; set; }
+}
+
+// Service：事务 + FOR UPDATE 行锁
+await using var tx = await _db.Database.BeginTransactionAsync();
+
+// FOR UPDATE 锁定行，防止并发读取脏数据
+var wallet = await _db.Wallet
+    .FromSqlRaw("SELECT * FROM wallet WHERE id = {0} FOR UPDATE", id)
+    .FirstOrDefaultAsync();
+if (wallet == null)
+    throw new NotFoundException("钱包不存在");
+
+wallet.Balance -= amount;  // EF 修改
+await _db.SaveChangesAsync(); // [ConcurrencyCheck] 字段值不一致时抛 DbUpdateConcurrencyException
+await tx.CommitAsync();
+```
+
+> `FOR UPDATE` 锁行到事务结束；`[ConcurrencyCheck]` 在 `SaveChanges` 时追加 `WHERE balance = @old` 作为第二道防线。批量锁多行时 `WHERE id IN (...)` 加 `FOR UPDATE`，需保证所有调用方按相同顺序加锁以避免死锁。
+
 ---
 
 ## 💻 前端（art-design-pro 3.0.2）
@@ -216,7 +245,101 @@ const {
 
 ---
 
-## 🔧 命令
+## ⏰ 后台任务（`Art.Api/Hosting/TaskConfiguration.cs`）
+
+Worker 类用 `[Service(ServiceLifetime.Transient)]`，需要DB时注入 `IDbContextFactory<ArtDbContext>`（禁止注入 `ArtDbContext`），无 `RequestContext`。
+
+```csharp
+// Worker 定义
+[Service(ServiceLifetime.Transient)]
+public class XxxWorker
+{
+    private readonly IDbContextFactory<ArtDbContext> _contextFactory;
+    public XxxWorker(IDbContextFactory<ArtDbContext> contextFactory) { _contextFactory = contextFactory; }
+
+    public async Task DoWork(CancellationToken cancel)
+    {
+        await using var db = await _contextFactory.CreateDbContextAsync(cancel);
+        // ...
+    }
+}
+```
+
+在 `TaskConfiguration` 构造函数注入并在 `ConfigureTasks` 中注册：
+
+```csharp
+// 定时任务（周期触发）
+taskScheduler.AddRecurringTask(
+    _xxxWorker.DoWork,
+    interval: TimeSpan.FromMinutes(30),      // 调度间隔
+    allowedHours: [2, 3],                    // 可选：只在这些小时执行
+    preventDuplicateInterval: TimeSpan.FromHours(12), // 可选：窗口内只执行一次（Redis去重）
+    useDistributedLock: true,                // 可选：多Pod分布式锁（默认true）
+    taskName: "xxx.daily");                  // 可选：任务名
+
+// 消息队列/延迟队列消费（两层节奏）
+taskScheduler.AddLongRunningTask(
+    _xxxWorker.ProcessQueue,
+    interval: TimeSpan.FromSeconds(1),       // 外层：多久尝试进入一轮运行窗口
+    processingInterval: TimeSpan.FromMilliseconds(100), // 内层：每次处理后的等待（节流/防空转）
+    runDuration: TimeSpan.FromSeconds(30),   // 单轮最长运行时长（到期退出释放锁）
+    taskName: "xxx.queue.consume");
+```
+
+> 队列 worker 的 `ProcessQueue` 每次批量消费 N 条（RPOP/ZRANGEBYSCORE+ZREM），消费完立即返回，由 `processingInterval` 控制节奏。
+
+---
+
+## � Redis 分布式锁（`Art.Infra.Cache.RedisLockExtensions`）
+
+注入 `RedisClient _cache`（using alias `RedisClient = FreeRedis.RedisClient`）。
+
+```csharp
+// TryLock：立即返回，获取失败返回 null，同步场景用 using
+using var locker = _cache.TryLock("biz:key", timeoutSeconds: 30);
+if (locker == null)
+    throw new BadRequestException("操作频繁，请稍后重试");
+// ... 业务逻辑，using 块结束自动释放
+
+// LockAsync：等待直到超时，异步场景用 await using
+await using var locker = await _cache.LockAsync(
+    "biz:key",
+    timeout: TimeSpan.FromSeconds(30),     // 锁过期时间（兜底）
+    waitTimeout: TimeSpan.FromSeconds(10), // 最长等待时间，默认等于 timeout
+    retryInterval: 200,                    // 重试间隔ms，默认50
+    enableWatchdog: true);                 // 自动续期，默认true
+if (locker == null)
+    throw new BadRequestException("获取锁超时");
+// ... 业务逻辑
+```
+
+> 锁 key 自动加 `lock:` 前缀；`TryLock` 默认 `enableWatchdog: false`，`LockAsync` 默认 `true`。
+
+---
+
+## 📬 Redis 延迟队列（`Art.Infra.Cache.RedisDelayQueueExtensions`）
+
+基于 Sorted Set，score = 到期 Unix 毫秒时间戳，Lua 原子消费。
+
+```csharp
+// 投递（Service 中）
+_cache.DelayQueuePublish(CacheKeys.XxxQueue, payload, delay: TimeSpan.FromMinutes(5));
+_cache.DelayQueuePublishBatch(CacheKeys.XxxQueue, payloads, delay: TimeSpan.FromMinutes(5));
+// overwrite: true（默认）= ZAdd 覆盖同值分数；false = ZAddNx 不覆盖
+
+// 消费（Worker 中，ProcessQueue 方法）
+var messages = _cache.DelayQueueConsume(CacheKeys.XxxQueue, maxCount: 20);
+// 返回已到期的消息，原子 ZRANGEBYSCORE + ZREM，多消费者安全
+
+// 移除指定消息
+_cache.DelayQueueRemove(CacheKeys.XxxQueue, payload);
+```
+
+> 消费 Worker 配合 `AddLongRunningTask` 注册；队列名统一定义在 `Art.Domain/Constants/CacheKeys.cs`。
+
+---
+
+## �🔧 命令
 
 ```bash
 cd backend/Art.Api && ASPNETCORE_ENVIRONMENT=Development dotnet run   # 后端 :5055
