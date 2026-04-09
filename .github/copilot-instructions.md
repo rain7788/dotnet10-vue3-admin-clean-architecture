@@ -147,6 +147,7 @@ await tx.CommitAsync();
 3. **后端路由模式** — 菜单由 `sys_menu` 表驱动，禁止修改前端静态路由文件（`asyncRoutes.ts`、`routesAlias.ts`）
 4. **类型可用 any** — 对接期 `ref<any[]>([])` 避免阻塞
 5. **权限指令**: `v-auth="'system:user:add'"` 控制按钮显隐
+6. **表格操作按钮** `ArtButtonTable` 内置 type：`add`/`edit`/`delete`/`view`/`more`，优先使用内置 type 和 icon，AI 可以自行扩展 icon，除非按钮特别多，才使用更多的 icon
 
 ### HTTP 请求（`import request from '@/utils/http'`）
 
