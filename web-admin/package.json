@@ -2,9 +2,20 @@
   "name": "art-design-pro",
   "version": "0.0.0",
   "type": "module",
+  "packageManager": "pnpm@10.28.0",
   "engines": {
     "node": ">=20.19.0",
     "pnpm": ">=8.8.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "@tailwindcss/oxide",
+      "core-js",
+      "es5-ext",
+      "esbuild",
+      "vue-demi"
+    ]
   },
   "scripts": {
     "dev": "vite --open",

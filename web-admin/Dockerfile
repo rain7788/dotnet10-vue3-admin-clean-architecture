@@ -7,7 +7,7 @@ FROM node:22-alpine AS build
 WORKDIR /app
 
 # 安装 pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.28.0 --activate
 
 # 复制依赖文件（利用缓存层）
 COPY package.json pnpm-lock.yaml ./
