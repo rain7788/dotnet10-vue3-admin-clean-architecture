@@ -22,6 +22,12 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseDefaultServiceProvider((_, options) =>
+{
+    options.ValidateScopes = true;
+    options.ValidateOnBuild = true;
+});
+
 // ========== 日志配置 ==========
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 

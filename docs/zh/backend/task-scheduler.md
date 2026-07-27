@@ -58,7 +58,7 @@ taskScheduler.AddLongRunningTask(
 ## Worker 编写
 
 ```csharp
-[Service(ServiceLifetime.Transient)]
+[TaskWorker]
 public class DailyWorker
 {
     // Worker 使用 IDbContextFactory 而不是直接注入 ArtDbContext
@@ -82,7 +82,7 @@ public class DailyWorker
 ```
 
 ::: warning 重要
-Worker 中 **必须使用 `IDbContextFactory`** 创建 DbContext，因为 Worker 不在 HTTP 请求作用域内，直接注入 `ArtDbContext` 会报错。
+`TaskWorker` 是单例，必须保持无状态和线程安全，只能注入单例服务。数据库上下文必须通过 `IDbContextFactory` 创建；直接注入 `ArtDbContext` 会被 DI 校验和架构测试拒绝。
 :::
 
 ## 任务配置

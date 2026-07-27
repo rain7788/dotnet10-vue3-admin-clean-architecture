@@ -47,7 +47,7 @@ public static void DelayQueuePublish(
 ## 消费者
 
 ```csharp
-[Service(ServiceLifetime.Transient)]
+[TaskWorker]
 public class DemoDelayQueueWorker
 {
     private readonly RedisClient _cache;

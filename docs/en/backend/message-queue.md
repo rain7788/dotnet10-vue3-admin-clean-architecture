@@ -37,7 +37,7 @@ public class OrderService
 ## Consumer
 
 ```csharp
-[Service(ServiceLifetime.Transient)]
+[TaskWorker]
 public class DemoMessageQueueWorker
 {
     private readonly IDbContextFactory<ArtDbContext> _contextFactory;

@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RedisClient = FreeRedis.RedisClient;
 using Art.Domain.Constants;
@@ -10,7 +9,7 @@ namespace Art.Core.Workers;
 /// <summary>
 /// Demo：Redis 延迟队列消费 Worker（Sorted Set ZRANGEBYSCORE + ZREM）
 /// </summary>
-[Service(ServiceLifetime.Transient)]
+[TaskWorker]
 public class DemoDelayQueueWorker
 {
     private readonly RedisClient _cache;

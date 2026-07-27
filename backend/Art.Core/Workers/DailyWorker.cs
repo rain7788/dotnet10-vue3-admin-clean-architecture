@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Art.Infra.Data;
 using Art.Infra.Framework;
@@ -10,7 +9,7 @@ namespace Art.Core.Workers;
 /// <summary>
 /// 每日任务 Worker
 /// </summary>
-[Service(ServiceLifetime.Transient)]
+[TaskWorker]
 public class DailyWorker
 {
     private readonly IDbContextFactory<ArtDbContext> _contextFactory;

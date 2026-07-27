@@ -262,7 +262,7 @@ taskScheduler.AddLongRunningTask(
 #### 实现 Worker
 
 ```csharp
-[Service(ServiceLifetime.Transient)]
+[TaskWorker]
 public class DailyWorker
 {
     public async Task ClearLogs(CancellationToken cancel)
@@ -282,7 +282,8 @@ public class DailyWorker
 
 **最佳实践：**
 
-- Worker 必须标记 `[Service(ServiceLifetime.Transient)]`
+- Worker 必须标记 `[TaskWorker]`，保持无状态和线程安全
+- Worker 只能注入 Singleton 服务；短生命周期资源通过 `IDbContextFactory` 等工厂创建
 - 任务方法中关键业务操作要使用 `CancellationToken`，支持优雅中断
 - 避免在 Worker 中注入 `RequestContext`（无用户上下文）
 

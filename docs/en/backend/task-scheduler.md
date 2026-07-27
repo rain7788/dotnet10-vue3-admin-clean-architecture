@@ -56,7 +56,7 @@ Outer                         Processing Window
 ## Writing Workers
 
 ```csharp
-[Service(ServiceLifetime.Transient)]
+[TaskWorker]
 public class DailyWorker
 {
     // Workers use IDbContextFactory, NOT direct ArtDbContext injection
@@ -76,7 +76,7 @@ public class DailyWorker
 ```
 
 ::: warning Important
-Workers **must use `IDbContextFactory`** to create DbContext. Workers run outside HTTP request scope — direct `ArtDbContext` injection will throw.
+`TaskWorker` instances are singletons. They must remain stateless and thread-safe, may only inject singleton services, and must use `IDbContextFactory` to create DbContext. Direct `ArtDbContext` injection is rejected by DI validation and architecture tests.
 :::
 
 ## Task Configuration

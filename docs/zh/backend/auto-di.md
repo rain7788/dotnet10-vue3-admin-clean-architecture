@@ -24,8 +24,8 @@ public class SysUserService
 | 生命周期 | 说明 | 典型场景 |
 | --- | --- | --- |
 | `Scoped` | 每个请求一个实例（默认） | Service、Repository |
-| `Transient` | 每次注入创建新实例 | Worker、无状态工具 |
-| `Singleton` | 全局单例 | 配置、TaskScheduler |
+| `Transient` | 每次注入创建新实例 | 短生命周期无状态工具 |
+| `Singleton` | 全局单例 | 配置、TaskWorker、TaskScheduler |
 
 ## ServiceAttribute 源码
 
@@ -63,8 +63,8 @@ services.AutoDependencyInjection();
 ## 实际示例
 
 ```csharp
-// Worker 使用 Transient（定时任务每次创建新的 scope）
-[Service(ServiceLifetime.Transient)]
+// TaskWorker 固定使用 Singleton，短生命周期资源通过工厂创建
+[TaskWorker]
 public class DailyWorker
 {
     private readonly IDbContextFactory<ArtDbContext> _contextFactory;
@@ -74,11 +74,6 @@ public class DailyWorker
         _contextFactory = contextFactory;
     }
 }
-
-// 接口注入 — 如果类实现了接口，按接口类型注册
-[Service(ServiceLifetime.Singleton)]
-public class TaskScheduler : ITaskScheduler, IHostedService
-{
-    // 可以通过 ITaskScheduler 注入
-}
 ```
+
+TaskWorker 不能直接注入 Scoped 服务、DbContext、RequestContext 或 IServiceProvider；这些约束由架构测试和 DI 容器校验共同保证。

@@ -27,7 +27,9 @@ Simply add the `[Service]` attribute — the framework scans all assemblies at s
 | --- | --- |
 | `Scoped` | One instance per request; **default for most services** |
 | `Singleton` | Global singleton, for stateless utilities |
-| `Transient` | New instance every injection; **Worker tasks use this** |
+| `Transient` | New instance every injection, for short-lived stateless utilities |
+
+Scheduled workers use `[TaskWorker]`, which derives from `[Service]` and always registers the worker as a singleton.
 
 ## How It Works
 
@@ -50,8 +52,9 @@ foreach (var type in types)
 
 ::: warning
 1. **Do NOT register in Program.cs** — adding `[Service]` is sufficient; manual registration causes duplicates
-2. **Workers must use `Transient`** — Workers run outside HTTP scope, Scoped lifetime will throw
-3. **Workers must NOT inject `RequestContext`** — no user context in background tasks
+2. **Workers must use `[TaskWorker]`** — Workers are stateless singletons held by the scheduler
+3. **Workers may only inject singleton services** — use factories such as `IDbContextFactory` for short-lived resources
+4. **Workers must NOT inject `RequestContext`** — no user context in background tasks
 :::
 
 ## RequestContext

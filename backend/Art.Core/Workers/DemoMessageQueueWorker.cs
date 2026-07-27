@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RedisClient = FreeRedis.RedisClient;
 using Art.Domain.Constants;
@@ -9,7 +8,7 @@ namespace Art.Core.Workers;
 /// <summary>
 /// Demo：Redis List 消息队列消费 Worker（RPOP）
 /// </summary>
-[Service(ServiceLifetime.Transient)]
+[TaskWorker]
 public class DemoMessageQueueWorker
 {
     private readonly RedisClient _cache;

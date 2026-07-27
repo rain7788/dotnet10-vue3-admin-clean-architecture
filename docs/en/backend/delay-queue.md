@@ -45,7 +45,7 @@ public class DelayQueueService
 ## Consumer
 
 ```csharp
-[Service(ServiceLifetime.Transient)]
+[TaskWorker]
 public class DemoDelayQueueWorker
 {
     private readonly RedisClient _redis;

@@ -16,7 +16,7 @@ _cache.LPush(CacheKeys.DemoMessageQueue, message);
 ## 消费者（Worker）
 
 ```csharp
-[Service(ServiceLifetime.Transient)]
+[TaskWorker]
 public class DemoMessageQueueWorker
 {
     private readonly RedisClient _cache;
