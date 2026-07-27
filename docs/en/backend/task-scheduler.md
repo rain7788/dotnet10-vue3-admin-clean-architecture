@@ -35,7 +35,7 @@ taskScheduler.AddRecurringTask(
 ```csharp
 taskScheduler.AddLongRunningTask(
     _demoMessageQueueWorker.ProcessQueue,
-    interval: TimeSpan.FromSeconds(1),             // Outer scheduling interval
+    interval: TimeSpan.FromSeconds(1),             // Cooldown after a window or failed lock attempt
     processingInterval: TimeSpan.FromMilliseconds(100), // Interval within processing window
     runDuration: TimeSpan.FromSeconds(30),          // Processing window duration
     taskName: "demo.queue.consume"
@@ -45,13 +45,13 @@ taskScheduler.AddLongRunningTask(
 ### Two-Level Rhythm
 
 ```
-Outer                         Processing Window
-│←── interval ──→│←── runDuration ──────────────────→│
-                  │                                    │
-                  │ process → wait → process → wait → │release lock
-                  │    ↑                          ↑    │
-                  │    └── processingInterval ─────┘    │
+Initial jitter → acquire →│←── runDuration ──────────→│release│← interval →│acquire again
+                           │ process → wait → process → │
+                           │    ↑                 ↑     │
+                           │    └ processingInterval ┘  │
 ```
+
+A Pod that fails to acquire the lock also waits one `interval` before retrying. The interval starts after the current attempt completes, so timer ticks cannot accumulate. After releasing the lock, the previous owner observes the full cooldown, giving other Pods a real opportunity to take over. `runDuration` is enforced through the CancellationToken, so workers should honor cancellation at batch boundaries.
 
 ## Writing Workers
 

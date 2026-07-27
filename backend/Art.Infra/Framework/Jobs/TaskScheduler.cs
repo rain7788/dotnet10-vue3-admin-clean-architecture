@@ -238,27 +238,28 @@ public class TaskScheduler : ITaskScheduler, IHostedService
     }
 
     /// <summary>
-    /// 长期任务循环执行
+    /// 长期任务运行窗口
     /// <para>
-    /// loopToken 会传入业务任务；业务任务应完成当前最小工作单元后响应取消。
+    /// 窗口 Token 会传入业务任务；业务任务应完成当前最小工作单元后响应取消。
     /// </para>
     /// </summary>
-    private async Task RunLongRunningLoopAsync(TaskInfo task, CancellationToken loopToken)
+    private async Task RunLongRunningWindowAsync(TaskInfo task, CancellationToken loopToken)
     {
-        var stopAt = DateTime.UtcNow + task.RunDuration;
+        using var windowCts = CancellationTokenSource.CreateLinkedTokenSource(loopToken);
+        windowCts.CancelAfter(task.RunDuration);
+        var windowToken = windowCts.Token;
         var processedCount = 0;
 
-        while (DateTime.UtcNow < stopAt && !loopToken.IsCancellationRequested)
+        while (!windowToken.IsCancellationRequested)
         {
             try
             {
-                await task.Action(loopToken);
+                await task.Action(windowToken);
                 processedCount++;
             }
-            catch (OperationCanceledException) when (loopToken.IsCancellationRequested)
+            catch (OperationCanceledException) when (windowToken.IsCancellationRequested)
             {
-                _logger.LogInformation("长期任务 {TaskName} 已响应停止信号，共处理 {Count} 次", task.Name, processedCount);
-                return;
+                break;
             }
             catch (Exception ex)
             {
@@ -267,24 +268,64 @@ public class TaskScheduler : ITaskScheduler, IHostedService
 
             if (task.ProcessingInterval > TimeSpan.Zero)
             {
-                // 延迟使用 loopToken，以便快速响应停止信号
-                if (!await TaskExtensions.SafeDelay(task.ProcessingInterval, loopToken))
-                {
-                    _logger.LogInformation("长期任务 {TaskName} 收到停止信号，停止处理循环，共处理 {Count} 次", task.Name, processedCount);
-                    return;
-                }
+                if (!await TaskExtensions.SafeDelay(task.ProcessingInterval, windowToken))
+                    break;
             }
         }
 
         if (loopToken.IsCancellationRequested)
-            _logger.LogInformation("长期任务 {TaskName} 循环被取消，共处理 {Count} 次", task.Name, processedCount);
+            _logger.LogInformation("长期任务 {TaskName} 已响应停止信号，共处理 {Count} 次", task.Name, processedCount);
+        else
+            _logger.LogDebug("长期任务 {TaskName} 运行窗口结束，共处理 {Count} 次", task.Name, processedCount);
     }
 
     /// <summary>
-    /// 任务循环主方法
-    /// <para>
-    /// _cts.Token / loopToken 同时控制定时器循环和业务任务的协作式取消。
-    /// </para>
+    /// 执行一次调度并隔离异常，返回 false 表示调度循环应停止。
+    /// </summary>
+    private async Task<bool> ExecuteScheduledIterationAsync(TaskInfo task, CancellationToken loopToken)
+    {
+        try
+        {
+            await ExecuteTaskSafe(task, loopToken);
+            return true;
+        }
+        catch (OperationCanceledException) when (loopToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("任务 {TaskName} 已响应停止信号", task.Name);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "任务调度执行失败，将在下一周期重试: {TaskName}", task.Name);
+            return true;
+        }
+    }
+
+    private async Task RunRecurringScheduleAsync(TaskInfo task, CancellationToken loopToken)
+    {
+        using var timer = new PeriodicTimer(task.Interval);
+        while (await timer.WaitForNextTickAsync(loopToken))
+        {
+            if (!await ExecuteScheduledIterationAsync(task, loopToken))
+                return;
+        }
+    }
+
+    private async Task RunLongRunningScheduleAsync(TaskInfo task, CancellationToken loopToken)
+    {
+        while (!loopToken.IsCancellationRequested)
+        {
+            if (!await ExecuteScheduledIterationAsync(task, loopToken))
+                return;
+
+            // 从本轮结束后开始计算间隔，确保释放锁后存在真实的 Pod 交接窗口。
+            if (!await TaskExtensions.SafeDelay(task.Interval, loopToken))
+                return;
+        }
+    }
+
+    /// <summary>
+    /// 任务循环主方法。
     /// </summary>
     private Task RunTaskLoop(TaskInfo task)
     {
@@ -304,23 +345,10 @@ public class TaskScheduler : ITaskScheduler, IHostedService
                 using var loopCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, _lifetime.ApplicationStopping);
                 var loopToken = loopCts.Token;
 
-                using var timer = new PeriodicTimer(task.Interval);
-                while (await timer.WaitForNextTickAsync(loopToken))
-                {
-                    try
-                    {
-                        await ExecuteTaskSafe(task, loopToken);
-                    }
-                    catch (OperationCanceledException) when (loopToken.IsCancellationRequested)
-                    {
-                        _logger.LogInformation("任务 {TaskName} 已响应停止信号", task.Name);
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "任务调度执行失败，将在下一周期重试: {TaskName}", task.Name);
-                    }
-                }
+                if (task.Type == TaskType.LongRunning)
+                    await RunLongRunningScheduleAsync(task, loopToken);
+                else
+                    await RunRecurringScheduleAsync(task, loopToken);
             }
             catch (OperationCanceledException) when (_cts.IsCancellationRequested || _lifetime.ApplicationStopping.IsCancellationRequested)
             {
@@ -343,7 +371,7 @@ public class TaskScheduler : ITaskScheduler, IHostedService
     {
         if (task.Type == TaskType.LongRunning)
         {
-            await RunLongRunningLoopAsync(task, loopToken);
+            await RunLongRunningWindowAsync(task, loopToken);
             return;
         }
 

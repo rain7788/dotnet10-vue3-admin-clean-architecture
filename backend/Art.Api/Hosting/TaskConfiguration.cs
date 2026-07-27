@@ -44,8 +44,8 @@ public class TaskConfiguration : ITaskConfigurationProvider
 
         // Demo：Redis List 消息队列消费（RPOP）
         // 参数说明：
-        // - interval：外层调度间隔（多久尝试进入一轮运行窗口/抢锁）
-        // - runDuration：单轮运行窗口时长（到点退出，释放锁，避免长期独占）
+        // - interval：本轮结束或抢锁失败后，等待多久再尝试下一轮
+        // - runDuration：单轮运行窗口时长（到点通知 Worker 退出并释放锁）
         // - processingInterval：窗口内每次处理后的延迟（避免空队列 CPU 空转 + 控制节奏）
         taskScheduler.AddLongRunningTask(
             _demoMessageQueueWorker.ProcessQueue,

@@ -32,8 +32,8 @@ public interface ITaskScheduler
     /// <remarks>
     /// 长期任务采用“两层节奏”：
     /// <list type="bullet">
-    /// <item><description><c>interval</c>：外层调度节奏——每隔多久尝试进入一轮“运行窗口”（会参与去重/抢锁）。</description></item>
-    /// <item><description><c>runDuration</c>：运行窗口时长——本轮最多运行多久后退出，以便释放分布式锁、让其他 Pod 有机会接管，避免长期独占。</description></item>
+    /// <item><description><c>interval</c>：外层冷却间隔——运行窗口结束或抢锁失败后，等待多久再尝试下一轮。</description></item>
+    /// <item><description><c>runDuration</c>：运行窗口时长——到期后取消传给 Worker 的 Token；Worker 响应后释放分布式锁，让其他 Pod 有机会接管。</description></item>
     /// <item><description><c>processingInterval</c>：窗口内处理节奏——每次调用 <paramref name="taskAction"/> 之后等待多久再进入下一次处理循环，用于节流和避免空队列时 CPU 空转。</description></item>
     /// </list>
     /// <para>队列消费的常见实践：<paramref name="taskAction"/> 内部每次批量消费 N 条；<c>processingInterval</c> 设为 50-300ms；<c>runDuration</c> 设为 30-120s。</para>

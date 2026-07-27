@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using Art.Infra.Extensions;
 using Art.Infra.Framework.Jobs;
@@ -86,6 +87,62 @@ public class TaskSchedulerTests
         Assert.True(actionToken.IsCancellationRequested);
     }
 
+    [Fact]
+    public async Task LongRunningTask_EndsTheWindowAndWaitsBeforeReacquiringTheLock()
+    {
+        using var redis = new RedisClient("127.0.0.1:6379");
+        using var services = new ServiceCollection()
+            .AddSingleton(redis)
+            .BuildServiceProvider();
+        var lifetime = new TestApplicationLifetime();
+        var scheduler = new TrackingLockScheduler(lifetime, services);
+        var firstWindowEnded = new TaskCompletionSource<CancellationToken>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var taskName = FindTaskNameWithoutInitialDelay(scheduler);
+        long firstWindowEndedTimestamp = 0;
+        var invocationCount = 0;
+
+        scheduler.AddLongRunningTask(
+            async token =>
+            {
+                try
+                {
+                    Interlocked.Increment(ref invocationCount);
+                    await Task.Delay(Timeout.InfiniteTimeSpan, token);
+                }
+                finally
+                {
+                    if (Interlocked.CompareExchange(ref firstWindowEndedTimestamp, Stopwatch.GetTimestamp(), 0) == 0)
+                        firstWindowEnded.TrySetResult(token);
+                }
+            },
+            interval: TimeSpan.FromMilliseconds(120),
+            processingInterval: TimeSpan.Zero,
+            runDuration: TimeSpan.FromMilliseconds(80),
+            taskName: taskName);
+
+        await scheduler.StartAsync(CancellationToken.None);
+        try
+        {
+            var windowToken = await firstWindowEnded.Task.WaitAsync(TimeSpan.FromSeconds(2));
+            await scheduler.SecondLockAttempt.WaitAsync(TimeSpan.FromSeconds(2));
+
+            var reacquireDelay = Stopwatch.GetElapsedTime(
+                Volatile.Read(ref firstWindowEndedTimestamp),
+                scheduler.SecondLockAttemptTimestamp);
+
+            Assert.True(windowToken.IsCancellationRequested);
+            Assert.True(invocationCount >= 1);
+            Assert.True(
+                reacquireDelay >= TimeSpan.FromMilliseconds(100),
+                $"锁释放后仅等待了 {reacquireDelay.TotalMilliseconds:F0}ms，未满足完整 interval");
+        }
+        finally
+        {
+            using var stopTimeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            await scheduler.StopAsync(stopTimeout.Token);
+        }
+    }
+
     private static string FindTaskNameWithoutInitialDelay(Scheduler scheduler)
     {
         var calculateDelay = typeof(Scheduler).GetMethod(
@@ -117,6 +174,31 @@ public class TaskSchedulerTests
         {
             if (Interlocked.Increment(ref _lockAttempts) == 1)
                 throw new InvalidOperationException("模拟 Redis 短暂故障");
+
+            return Task.FromResult<IAsyncDisposable?>(new NoopAsyncDisposable());
+        }
+    }
+
+    private sealed class TrackingLockScheduler : Scheduler
+    {
+        private readonly TaskCompletionSource _secondLockAttempt = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _lockAttempts;
+
+        public TrackingLockScheduler(IHostApplicationLifetime lifetime, IServiceProvider serviceProvider)
+            : base(NullLogger<Scheduler>.Instance, lifetime, serviceProvider)
+        {
+        }
+
+        public Task SecondLockAttempt => _secondLockAttempt.Task;
+        public long SecondLockAttemptTimestamp { get; private set; }
+
+        internal override Task<IAsyncDisposable?> TryAcquireDistributedLockAsync(TaskInfo task)
+        {
+            if (Interlocked.Increment(ref _lockAttempts) == 2)
+            {
+                SecondLockAttemptTimestamp = Stopwatch.GetTimestamp();
+                _secondLockAttempt.TrySetResult();
+            }
 
             return Task.FromResult<IAsyncDisposable?>(new NoopAsyncDisposable());
         }

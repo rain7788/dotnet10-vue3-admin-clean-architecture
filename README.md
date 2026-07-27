@@ -245,9 +245,9 @@ public void ConfigureTasks(ITaskScheduler taskScheduler)
 ```csharp
 taskScheduler.AddLongRunningTask(
     _worker.ProcessMessages,             // 任务方法
-    TimeSpan.FromSeconds(1),             // 每隔多久尝试进入一轮“运行窗口”（会参与去重/抢锁）
+    TimeSpan.FromSeconds(1),             // 本轮结束或抢锁失败后的冷却间隔
     processingInterval: TimeSpan.FromMilliseconds(100),  // 每 100ms 处理一批
-    runDuration: TimeSpan.FromMinutes(1) // 单次运行时长，结束后所有pod去争夺下一轮任务执行权，如果关闭分布式锁则多个pod可以同时执行。
+    runDuration: TimeSpan.FromMinutes(1) // 单次运行窗口，结束后释放锁并进入冷却间隔
 );
 ```
 

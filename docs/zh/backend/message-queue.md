@@ -57,7 +57,7 @@ public class DemoMessageQueueWorker
 // TaskConfiguration.cs
 taskScheduler.AddLongRunningTask(
     _demoMessageQueueWorker.ProcessQueue,
-    interval: TimeSpan.FromSeconds(1),           // 外层调度间隔
+    interval: TimeSpan.FromSeconds(1),           // 本轮结束或抢锁失败后的冷却间隔
     processingInterval: TimeSpan.FromMilliseconds(100), // 每次消费间隔
     runDuration: TimeSpan.FromSeconds(30),        // 运行窗口时长
     taskName: "demo.queue.consume"
@@ -65,8 +65,8 @@ taskScheduler.AddLongRunningTask(
 ```
 
 运行节奏说明：
-- **interval** — 每 1 秒尝试进入消费窗口（会参与分布式锁竞争）
-- **runDuration** — 获得锁后最多运行 30 秒，然后释放锁让其他 Pod 接管
+- **interval** — 本轮结束或抢锁失败后等待 1 秒，再参与下一轮分布式锁竞争
+- **runDuration** — 获得锁后最多运行 30 秒，通过取消信号结束窗口并释放锁
 - **processingInterval** — 每次消费后等 100ms，避免空队列时 CPU 空转
 
 ## 何时选择 Redis MQ？

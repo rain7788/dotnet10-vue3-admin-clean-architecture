@@ -37,7 +37,7 @@ taskScheduler.AddRecurringTask(
 // 消息队列消费
 taskScheduler.AddLongRunningTask(
     _demoMessageQueueWorker.ProcessQueue,
-    interval: TimeSpan.FromSeconds(1),         // 外层调度间隔
+    interval: TimeSpan.FromSeconds(1),         // 窗口结束或抢锁失败后的冷却间隔
     processingInterval: TimeSpan.FromMilliseconds(100), // 每次处理后的间隔
     runDuration: TimeSpan.FromSeconds(30),     // 运行窗口时长
     taskName: "demo.queue.consume"
@@ -47,13 +47,13 @@ taskScheduler.AddLongRunningTask(
 ### 两层节奏
 
 ```
-外层                        运行窗口内
-│←── interval ──→│←── runDuration ──────────────────→│
-                  │                                    │
-                  │ process → wait → process → wait → │释放锁
+初始抖动 → 抢锁 →│←── runDuration ──────────────────→│释放锁│← interval →│再次抢锁
+                  │ process → wait → process → wait → │
                   │    ↑                          ↑    │
                   │    └── processingInterval ─────┘    │
 ```
+
+抢锁失败的 Pod 同样等待一个 `interval` 后重试。`interval` 从本轮结束后开始计算，不会积压定时器 tick；持锁 Pod 释放锁后会完整等待一个冷却间隔，让其他 Pod 获得实际接管机会。`runDuration` 会通过 CancellationToken 通知 Worker 结束当前窗口，因此 Worker 应在批次边界响应取消。
 
 ## Worker 编写
 
