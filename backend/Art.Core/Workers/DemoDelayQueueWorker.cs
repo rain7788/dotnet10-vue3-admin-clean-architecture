@@ -26,6 +26,7 @@ public class DemoDelayQueueWorker
 
     public Task ProcessQueue(CancellationToken cancel)
     {
+        cancel.ThrowIfCancellationRequested();
         var messages = _cache.DelayQueueConsume(CacheKeys.DemoDelayQueue, maxCount: 20);
 
         if (messages.Length == 0) return Task.CompletedTask;

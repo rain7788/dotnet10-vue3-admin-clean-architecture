@@ -98,8 +98,7 @@ services.AutoDependencyInjection();
 services.AddApiRouters();
 
 // 注册任务调度器
-services.AddSingleton<ITaskScheduler, Art.Infra.Framework.Jobs.TaskScheduler>();
-services.AddHostedService(sp => (Art.Infra.Framework.Jobs.TaskScheduler)sp.GetRequiredService<ITaskScheduler>());
+services.AddTaskScheduler();
 
 // CORS 跨域配置
 services.AddCors(options =>
@@ -188,4 +187,3 @@ app.ConfigureApiGroups();
 // ========== 启动 ==========
 Log.Information("Art API starting...");
 app.Run();
-

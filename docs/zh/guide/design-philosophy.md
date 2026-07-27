@@ -66,7 +66,7 @@ Art Admin 采用**模块化单体**而非微服务架构。详细理由参见[�
 
 1. **接收停止信号** — Docker 发送 `SIGTERM` 或用户 `Ctrl+C`
 2. **取消任务循环** — 通知所有后台任务停止等待下一轮
-3. **等待任务完成** — 给正在执行的任务 10 秒时间完成当前业务
+3. **等待任务完成** — Worker 在安全边界响应取消，调度器在 Host 停止期限内等待
 4. **释放资源** — 关闭 Redis 连接、刷新日志缓冲区
 
 ```csharp
@@ -78,4 +78,4 @@ app.Lifetime.ApplicationStopped.Register(() =>
 });
 ```
 
-> Docker 默认给 10 秒优雅关闭时间，与框架的等待时间对齐。如果任务可能超过 10 秒，可在 `docker-compose.yml` 中增加 `stop_grace_period: 30s`。
+> Docker 的 `stop_grace_period` 应不小于应用配置的 Host 停止期限。任务需要更长清理时间时，可增加 `stop_grace_period: 30s`。

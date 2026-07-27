@@ -25,11 +25,14 @@ public class DemoMessageQueueWorker
 
     public Task ProcessQueue(CancellationToken cancel)
     {
+        cancel.ThrowIfCancellationRequested();
+
         const int maxBatchSize = 20;
         var processed = 0;
 
         for (var i = 0; i < maxBatchSize; i++)
         {
+            cancel.ThrowIfCancellationRequested();
             var msg = _cache.RPop(CacheKeys.DemoMessageQueue);
             if (string.IsNullOrEmpty(msg))
                 break;

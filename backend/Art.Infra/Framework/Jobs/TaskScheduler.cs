@@ -54,7 +54,6 @@ internal static class TaskExtensions
 /// <summary>
 /// 任务调度器实现
 /// </summary>
-[Service(ServiceLifetime.Singleton)]
 public class TaskScheduler : ITaskScheduler, IHostedService
 {
     private readonly ILogger<TaskScheduler> _logger;
@@ -123,6 +122,7 @@ public class TaskScheduler : ITaskScheduler, IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         _logger.LogInformation("任务调度器启动 - Pod: {PodId}", _podId);
 
         _redisClient = _serviceProvider.GetService<RedisClient>();
@@ -147,26 +147,25 @@ public class TaskScheduler : ITaskScheduler, IHostedService
         _logger.LogInformation("任务调度器停止中...");
         _cts.Cancel();
 
-        // 等待所有任务完成，最多等待10秒（给正在执行的任务时间完成业务闭环）
         var allTasks = Task.WhenAll(_runningTasks);
-        var completed = await Task.WhenAny(allTasks, Task.Delay(TimeSpan.FromSeconds(10), CancellationToken.None));
-
-        if (completed == allTasks)
+        try
         {
-            try
-            {
-                await allTasks;
-            }
-            catch (OperationCanceledException)
-            {
-                // 正常取消，视为已停止
-            }
-
+            await allTasks.WaitAsync(cancellationToken);
             _logger.LogInformation("所有任务已正常停止");
-            return;
         }
-
-        _logger.LogWarning("任务停止超时，强制退出");
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            var unfinishedCount = _runningTasks.Count(task => !task.IsCompleted);
+            _logger.LogWarning("等待任务停止超时，仍有 {Count} 个任务未完成", unfinishedCount);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("所有任务已响应取消信号");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "等待任务停止时发生异常");
+        }
     }
 
     private void ConfigureDefaultTasks()
@@ -190,9 +189,7 @@ public class TaskScheduler : ITaskScheduler, IHostedService
     /// <summary>
     /// 执行任务（带安全检查）
     /// <para>
-    /// 双层 Token 机制说明：
-    /// - loopToken 用于控制循环层（是否继续下一轮定时器等待）
-    /// - 传给业务代码的是 CancellationToken.None，确保 HTTP/DB 操作不被中断
+    /// loopToken 同时控制调度循环和业务任务，业务代码应在批次或事务边界响应取消。
     /// </para>
     /// </summary>
     private async Task ExecuteTaskSafe(TaskInfo task, CancellationToken loopToken)
@@ -212,24 +209,11 @@ public class TaskScheduler : ITaskScheduler, IHostedService
             await using var locker = await TryAcquireDistributedLockAsync(task);
             if (locker == null) return;
 
-            // 传入 loopToken 仅用于控制长期任务的循环层
             await ExecuteByTypeAsync(task, loopToken);
             return;
         }
 
-        try
-        {
-            await ExecuteByTypeAsync(task, loopToken);
-        }
-        catch (OperationCanceledException)
-        {
-            // 正常取消（循环层被取消）
-            _logger.LogInformation("任务循环被取消: {TaskName}", task.Name);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "任务执行失败: {TaskName}", task.Name);
-        }
+        await ExecuteByTypeAsync(task, loopToken);
     }
 
     private static string GenerateTaskName(Func<CancellationToken, Task> action)
@@ -256,9 +240,7 @@ public class TaskScheduler : ITaskScheduler, IHostedService
     /// <summary>
     /// 长期任务循环执行
     /// <para>
-    /// 双层 Token 机制：
-    /// - loopToken 控制循环是否继续（是否开始新一轮处理、延迟等待）
-    /// - 传给 task.Action 的是 CancellationToken.None，确保业务操作完整执行
+    /// loopToken 会传入业务任务；业务任务应完成当前最小工作单元后响应取消。
     /// </para>
     /// </summary>
     private async Task RunLongRunningLoopAsync(TaskInfo task, CancellationToken loopToken)
@@ -270,9 +252,13 @@ public class TaskScheduler : ITaskScheduler, IHostedService
         {
             try
             {
-                // 关键：传入 CancellationToken.None，确保 HTTP/DB 操作不被取消
-                await task.Action(CancellationToken.None);
+                await task.Action(loopToken);
                 processedCount++;
+            }
+            catch (OperationCanceledException) when (loopToken.IsCancellationRequested)
+            {
+                _logger.LogInformation("长期任务 {TaskName} 已响应停止信号，共处理 {Count} 次", task.Name, processedCount);
+                return;
             }
             catch (Exception ex)
             {
@@ -284,7 +270,7 @@ public class TaskScheduler : ITaskScheduler, IHostedService
                 // 延迟使用 loopToken，以便快速响应停止信号
                 if (!await TaskExtensions.SafeDelay(task.ProcessingInterval, loopToken))
                 {
-                    _logger.LogInformation("长期任务 {TaskName} 收到停止信号，等待当前任务完成后退出，共处理 {Count} 次", task.Name, processedCount);
+                    _logger.LogInformation("长期任务 {TaskName} 收到停止信号，停止处理循环，共处理 {Count} 次", task.Name, processedCount);
                     return;
                 }
             }
@@ -297,9 +283,7 @@ public class TaskScheduler : ITaskScheduler, IHostedService
     /// <summary>
     /// 任务循环主方法
     /// <para>
-    /// 双层 Token 机制：
-    /// - _cts.Token / loopToken 控制定时器循环
-    /// - 实际任务执行使用 CancellationToken.None
+    /// _cts.Token / loopToken 同时控制定时器循环和业务任务的协作式取消。
     /// </para>
     /// </summary>
     private Task RunTaskLoop(TaskInfo task)
@@ -317,17 +301,34 @@ public class TaskScheduler : ITaskScheduler, IHostedService
                     return;
                 }
 
-                var loopToken = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, _lifetime.ApplicationStopping).Token;
+                using var loopCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, _lifetime.ApplicationStopping);
+                var loopToken = loopCts.Token;
 
                 using var timer = new PeriodicTimer(task.Interval);
                 while (await timer.WaitForNextTickAsync(loopToken))
                 {
-                    await ExecuteTaskSafe(task, loopToken);
+                    try
+                    {
+                        await ExecuteTaskSafe(task, loopToken);
+                    }
+                    catch (OperationCanceledException) when (loopToken.IsCancellationRequested)
+                    {
+                        _logger.LogInformation("任务 {TaskName} 已响应停止信号", task.Name);
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "任务调度执行失败，将在下一周期重试: {TaskName}", task.Name);
+                    }
                 }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (_cts.IsCancellationRequested || _lifetime.ApplicationStopping.IsCancellationRequested)
             {
                 _logger.LogInformation("任务 {TaskName} 循环已停止", task.Name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "任务 {TaskName} 调度循环异常终止", task.Name);
             }
         }, _cts.Token);
     }
@@ -335,27 +336,18 @@ public class TaskScheduler : ITaskScheduler, IHostedService
     /// <summary>
     /// 根据任务类型执行
     /// <para>
-    /// 双层 Token 机制：loopToken 仅控制长期任务的循环层，周期任务直接传 CancellationToken.None
+    /// loopToken 会传入周期任务和长期任务，用于协作式停止。
     /// </para>
     /// </summary>
     private async Task ExecuteByTypeAsync(TaskInfo task, CancellationToken loopToken)
     {
         if (task.Type == TaskType.LongRunning)
         {
-            // 长期任务：loopToken 控制循环层，业务代码使用 CancellationToken.None
             await RunLongRunningLoopAsync(task, loopToken);
             return;
         }
 
-        // 周期任务：传入 CancellationToken.None，确保任务完整执行不被中断
-        try
-        {
-            await task.Action(CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "周期任务执行失败: {TaskName}", task.Name);
-        }
+        await task.Action(loopToken);
     }
 
     private async Task<bool> TryAcquireDedupAsync(TaskInfo task)
@@ -367,7 +359,7 @@ public class TaskScheduler : ITaskScheduler, IHostedService
         return await Task.FromResult(acquired);
     }
 
-    private async Task<IAsyncDisposable?> TryAcquireDistributedLockAsync(TaskInfo task)
+    internal virtual async Task<IAsyncDisposable?> TryAcquireDistributedLockAsync(TaskInfo task)
     {
         if (_redisClient == null) return null;
 

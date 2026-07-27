@@ -31,6 +31,7 @@ public class DailyWorker
     {
         try
         {
+            cancel.ThrowIfCancellationRequested();
             using var context = _contextFactory.CreateDbContext();
             var connectionString = context.Database.GetConnectionString();
 
@@ -46,6 +47,10 @@ public class DailyWorker
             await tableManager.DropOldTablesAsync(30);
 
             _logger.LogInformation("日志清理完成，已删除 30 天前的日志表");
+        }
+        catch (OperationCanceledException) when (cancel.IsCancellationRequested)
+        {
+            throw;
         }
         catch (Exception ex)
         {

@@ -8,14 +8,14 @@ public interface ITaskScheduler
     /// <summary>
     /// 添加周期性任务
     /// </summary>
-    /// <param name="taskAction">任务执行逻辑</param>
+    /// <param name="taskAction">任务执行逻辑；应在批次或事务边界响应取消信号。</param>
     /// <param name="interval">执行间隔（调度器每隔该时间尝试触发一次任务）。</param>
     /// <param name="allowedHours">允许执行的小时范围（可选）。不在允许范围内会跳过执行。</param>
     /// <param name="preventDuplicateInterval">防重复执行间隔（可选）。在该时间窗口内只允许执行一次（基于 Redis 去重 Key）。</param>
     /// <param name="useDistributedLock">
     /// 是否启用分布式锁（默认 true）。
     /// <para>在多 Pod 部署场景，建议保持开启，避免同一任务在多个 Pod 上同时执行。</para>
-    /// <para>当 Redis 不可用时，调度器会自动降级为无锁模式（无法跨 Pod 互斥）。</para>
+    /// <para>未配置 Redis 时会降级为无锁模式；已配置但运行期不可用时会跳过当前轮次，避免多 Pod 并发执行。</para>
     /// </param>
     /// <param name="taskName">任务名称</param>
     void AddRecurringTask(

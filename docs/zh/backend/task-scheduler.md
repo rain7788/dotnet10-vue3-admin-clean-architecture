@@ -109,6 +109,8 @@ public class TaskConfiguration : ITaskConfigurationProvider
 
 多 Pod 部署时，同一任务只有一个 Pod 执行。使用 Redis 分布式锁实现。
 
+未配置 Redis 时任务以无锁模式运行；如果 Redis 已配置但运行期暂时不可用，任务会跳过当前轮次并在下个周期重试，避免多 Pod 无锁并发执行。
+
 ### 初始延迟分散
 
 每个任务根据 `任务名 + PodId` 的 hash 值计算初始延迟（0-30 秒），避免所有任务在重启后同时启动。
@@ -116,9 +118,7 @@ public class TaskConfiguration : ITaskConfigurationProvider
 ### 优雅退出
 
 ```
-应用停止信号 → 取消任务循环 → 等待当前执行完成（最多 10 秒） → 强制退出
+应用停止信号 → 取消任务循环和业务任务 → Worker 在安全边界退出 → Host 等待任务完成
 ```
 
-双层 CancellationToken 机制：
-- **循环层** — 使用 CancellationToken 控制是否继续下一轮
-- **业务层** — 传入 `CancellationToken.None`，确保 HTTP/DB 操作完整执行不被中断
+调度器将同一个停止 `CancellationToken` 传给循环和业务任务。Worker 应在批次或事务边界响应取消；最长等待时间由 Host 的停止期限控制。

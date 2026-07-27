@@ -253,8 +253,8 @@ taskScheduler.AddLongRunningTask(
 
 #### 核心特性
 
-- **分布式锁** - 基于 Redis 的分布式锁，防止集群环境下任务重复执行
-- **优雅退出** - 应用关闭时等待任务完成当前业务闭环（最多 10 秒）
+- **分布式锁** - 基于 Redis 的分布式锁；运行期 Redis 故障时跳过当前轮次并在下个周期重试
+- **优雅退出** - 应用关闭时通知 Worker 协作式取消，并在 Host 停止期限内等待任务退出
 - **时段控制** - 支持限制任务在特定时段执行（如凌晨维护窗口）
 - **防重保护** - 支持配置任务在指定时间内不重复执行
 - **自动恢复** - 任务失败会记录日志并在下个周期自动重试
@@ -282,7 +282,7 @@ public class DailyWorker
 
 **最佳实践：**
 
-- Worker 必须标记 `[Service(ServiceLifetime.Transient)]`，每次执行创建新实例
+- Worker 必须标记 `[Service(ServiceLifetime.Transient)]`
 - 任务方法中关键业务操作要使用 `CancellationToken`，支持优雅中断
 - 避免在 Worker 中注入 `RequestContext`（无用户上下文）
 
@@ -297,17 +297,9 @@ public async Task StopAsync(CancellationToken cancellationToken)
 {
     _cts.Cancel();  // 发送取消信号
 
-    // 等待所有任务完成，最多 10 秒
+    // 等待所有任务完成，最长等待时间由 Host 的停止 Token 控制
     var allTasks = Task.WhenAll(_runningTasks);
-    var completed = await Task.WhenAny(
-        allTasks,
-        Task.Delay(TimeSpan.FromSeconds(10))
-    );
-
-    if (completed == allTasks)
-        _logger.LogInformation("所有任务已正常停止");
-    else
-        _logger.LogWarning("任务停止超时，强制退出");
+    await allTasks.WaitAsync(cancellationToken);
 }
 ```
 
@@ -315,7 +307,7 @@ public async Task StopAsync(CancellationToken cancellationToken)
 
 1. **接收停止信号** - Docker 发送 `SIGTERM` 或用户 `Ctrl+C`
 2. **取消任务循环** - 通知所有后台任务停止等待下一轮
-3. **等待任务完成** - 给正在执行的任务 10 秒时间完成当前业务
+3. **等待任务完成** - Worker 在安全边界响应取消，调度器在 Host 停止期限内等待
 4. **释放资源** - 关闭 Redis 连接、刷新日志缓冲区
 
 ```csharp
@@ -351,8 +343,8 @@ public async Task ProcessData(CancellationToken cancel)
 
 **Docker 部署建议：**
 
-- Docker 默认给 10 秒优雅关闭时间，与框架的 10 秒等待时间对齐
-- 如果任务可能超过 10 秒，在 `docker-compose.yml` 中增加 `stop_grace_period`：
+- Docker 的 `stop_grace_period` 应不小于应用配置的 Host 停止期限
+- 如果任务需要更长的清理时间，在 `docker-compose.yml` 中增加 `stop_grace_period`：
   ```yaml
   services:
     api:

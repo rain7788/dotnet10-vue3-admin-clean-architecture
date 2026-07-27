@@ -100,6 +100,8 @@ public class TaskConfiguration : ITaskConfigurationProvider
 
 In multi-Pod deployments, each task runs on only one Pod. Redis distributed locks handle the coordination.
 
+Tasks run without a lock when Redis is not configured. If configured Redis becomes temporarily unavailable at runtime, the current execution is skipped and retried on the next interval so multiple Pods do not run unlocked.
+
 ### Staggered Initial Delay
 
 Each task computes an initial delay (0-30s) from a hash of `taskName + PodId`, preventing all tasks from starting simultaneously after restart.
@@ -107,9 +109,7 @@ Each task computes an initial delay (0-30s) from a hash of `taskName + PodId`, p
 ### Graceful Shutdown
 
 ```
-Stop signal → Cancel task loop → Wait for current execution (max 10s) → Force exit
+Stop signal → Cancel task loop and business task → Worker exits at a safe boundary → Host waits for completion
 ```
 
-Dual CancellationToken mechanism:
-- **Loop level** — CancellationToken controls whether to continue the next iteration
-- **Business level** — Uses `CancellationToken.None` to ensure HTTP/DB operations complete without interruption
+The scheduler passes the same stop `CancellationToken` to the loop and the business task. Workers should honor cancellation at batch or transaction boundaries; the Host shutdown timeout controls the maximum wait.
