@@ -17,6 +17,7 @@ metadata:
   name: art-docs
   namespace: apps
 spec:
+  progressDeadlineSeconds: 1800
   replicas: 1
   selector:
     matchLabels:
@@ -26,9 +27,12 @@ spec:
       labels:
         app: art-docs
     spec:
+      imagePullSecrets:
+        - name: tcr-registry
       containers:
         - name: art-docs
-          image: ghcr.io/rain7788/art-docs:latest
+          image: ccr.ccs.tencentyun.com/rain7788/art-docs:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
               name: http

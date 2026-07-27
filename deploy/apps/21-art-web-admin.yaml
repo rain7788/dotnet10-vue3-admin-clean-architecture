@@ -17,6 +17,7 @@ metadata:
   name: art-web-admin
   namespace: apps
 spec:
+  progressDeadlineSeconds: 1800
   replicas: 1
   selector:
     matchLabels:
@@ -26,9 +27,12 @@ spec:
       labels:
         app: art-web-admin
     spec:
+      imagePullSecrets:
+        - name: tcr-registry
       containers:
         - name: art-web-admin
-          image: ghcr.io/rain7788/art-web-admin:latest
+          image: ccr.ccs.tencentyun.com/rain7788/art-web-admin:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
               name: http

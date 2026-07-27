@@ -14,9 +14,11 @@
 ## 依赖（本项目约定）
 
 - 命名空间：`apps`
-- 镜像：
-  - `ghcr.io/rain7788/art-api:{latest|sha-...}`
-  - `ghcr.io/rain7788/art-web-admin:{latest|sha-...}`
+- 生产镜像：
+  - `ccr.ccs.tencentyun.com/rain7788/art-api:{latest|sha-...}`
+  - `ccr.ccs.tencentyun.com/rain7788/art-web-admin:{latest|sha-...}`
+  - `ccr.ccs.tencentyun.com/rain7788/art-docs:{latest|sha-...}`
+- GHCR 保留同名镜像作为备份。
 - Ingress：Traefik
 - 证书：cert-manager + `ClusterIssuer/letsencrypt-prod`
 
@@ -26,11 +28,12 @@
 
 - `Secret/mysql-secret`（键：`MYSQL_ROOT_PASSWORD`、`MYSQL_DATABASE`）
 - `Secret/art-api-conn`（键：`ConnectionStrings__DefaultConnection`、`ConnectionStrings__Redis`）
+- `Secret/tcr-registry`（腾讯云 TCR 的 `kubernetes.io/dockerconfigjson` 拉取凭据）
 
 你可以用：
 
 ```bash
-kubectl -n apps get secret mysql-secret art-api-conn
+kubectl -n apps get secret mysql-secret art-api-conn tcr-registry
 ```
 
 ## Argo CD
