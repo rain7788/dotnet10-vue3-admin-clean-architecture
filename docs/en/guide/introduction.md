@@ -11,7 +11,7 @@ Traditional admin frameworks have redundant code, inconsistent styles, and many 
 - **Clean Layering** — Four-layer architecture with clear responsibilities; AI knows where code belongs
 - **Convention over Configuration** — `[Service]` for auto-DI, `IAdminRouterBase` for auto-routing, zero boilerplate
 - **Consistent Code Patterns** — All Services, Routers, and Entities follow the same conventions
-- **Built-in Copilot Instructions** — `.github/copilot-instructions.md` with complete coding guidelines
+- **Built-in Agent Instructions** — `AGENTS.md` with complete coding and testing guidelines
 
 ### Batteries Included
 

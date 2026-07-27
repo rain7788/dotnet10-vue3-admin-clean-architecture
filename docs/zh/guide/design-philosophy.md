@@ -12,7 +12,7 @@ Art Admin 的核心设计目标是 **让 AI 能高效参与开发**。
 Art Admin 的解决方案：
 - **一致的代码模式** — 所有 Service 用 `[Service]`、所有 Router 实现 `IAdminRouterBase`、所有 Entity 继承 `EntityBase`
 - **显式标注** — `[Service(ServiceLifetime.Scoped)]` 明确声明生命周期，无需猜测
-- **Copilot 指令文件** — `.github/copilot-instructions.md` 内置完整的编码规范，AI 自动遵循
+- **Agent 指令文件** — `AGENTS.md` 内置完整的编码与测试规范，AI 自动遵循
 - **简单的 API** — Minimal API 路由、`PredicateBuilder` 查询、`throw new BadRequestException()` 异常
 
 ## 约定优于配置

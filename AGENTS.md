@@ -1,12 +1,23 @@
-# Art Admin AI 编码指南
+# Art Admin Agent 编码指南
 
 ## ⛔ 原则
 
 - **禁止猜测** — 不确定的 API、类名、方法名必须先搜索确认
 - **禁止编造** — 不存在的文件、配置、依赖包不能使用
-- **修改后必须验证** — 后端 `dotnet build`；前端 `get_errors`
+- **修改后必须验证** — 后端 `dotnet test backend/Art.sln`；前端 `get_errors`
 - **数据库变更三同步** — `database/schemas/` + `seeds/` + `migrations/yyyyMMdd_desc.sql`（无外键约束）
 - **新增页面** — 必须在 `database/migrations/` 中插入 `sys_menu` 菜单记录
+
+---
+
+## 🧪 测试约定
+
+- 所有 .NET 测试项目和测试源文件必须位于 `backend/tests/`
+- 生产项目目录不得包含测试类、测试辅助代码或测试专用依赖
+- 当前测试默认添加到 `backend/tests/Art.Tests/`
+- 只有当测试依赖、运行环境或执行速度明显不同时，才在 `backend/tests/` 下拆分新的测试项目
+- 修改后端行为或修复缺陷时，应同步添加或更新对应测试
+- 后端改动完成后必须执行 `dotnet test backend/Art.sln`
 
 ---
 

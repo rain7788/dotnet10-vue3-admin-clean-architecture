@@ -18,6 +18,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run backend tests
+        run: dotnet test ./backend/Art.sln --configuration Release
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -50,6 +58,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: root
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 35m
           script: |
             k3s kubectl -n apps rollout restart deploy art-api
-            k3s kubectl -n apps rollout status deploy art-api --timeout=120s
+            k3s kubectl -n apps rollout status deploy art-api --timeout=30m

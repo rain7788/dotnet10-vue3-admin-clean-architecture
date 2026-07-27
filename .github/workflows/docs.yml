@@ -50,6 +50,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: root
           key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 35m
           script: |
             k3s kubectl -n apps rollout restart deploy art-docs
-            k3s kubectl -n apps rollout status deploy art-docs --timeout=120s
+            k3s kubectl -n apps rollout status deploy art-docs --timeout=30m

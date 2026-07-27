@@ -6,15 +6,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /src
 
-# 复制 sln 和 csproj 文件，利用 Docker 缓存层
-COPY Art.sln .
+# 复制生产项目的 csproj 文件，利用 Docker 缓存层
 COPY Art.Api/Art.Api.csproj Art.Api/
 COPY Art.Core/Art.Core.csproj Art.Core/
 COPY Art.Domain/Art.Domain.csproj Art.Domain/
 COPY Art.Infra/Art.Infra.csproj Art.Infra/
 
-# 还原依赖（独立层，利用缓存）
-RUN dotnet restore
+# 只还原 API 发布所需依赖，测试项目不参与生产镜像构建
+RUN dotnet restore Art.Api/Art.Api.csproj
 
 # 复制所有源代码
 COPY . .
@@ -23,6 +22,7 @@ COPY . .
 RUN dotnet publish Art.Api/Art.Api.csproj \
     -c Release \
     -o /app/publish \
+    --no-restore \
     /p:PublishTrimmed=false \
     /p:PublishSingleFile=false
 
@@ -53,7 +53,7 @@ EXPOSE 80
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:80/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:80/common/health || exit 1
 
 # 启动应用
 ENTRYPOINT ["dotnet", "Art.Api.dll"]

@@ -1,7 +1,7 @@
 # Build outputs
-bin/
-obj/
-publish/
+**/bin/
+**/obj/
+**/publish/
 
 # IDE
 .vs/
@@ -18,8 +18,9 @@ publish/
 Thumbs.db
 
 # Test results
-TestResults/
-coverage/
+tests/
+**/TestResults/
+**/coverage/
 
 # Secrets (don't ship to image)
 appsettings.Development.json

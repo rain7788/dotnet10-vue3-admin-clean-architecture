@@ -11,7 +11,7 @@ Art Admin 是一个 **AI 友好的全栈后台管理框架**，基于 **.NET 10 
 - **清洁分层** — 四层架构职责清晰，AI 知道代码该写在哪里
 - **约定优于配置** — `[Service]` 自动注入、`IAdminRouterBase` 自动注册路由，零样板代码
 - **一致的代码模式** — 所有 Service、Router、Entity 遵循相同的写法规范
-- **完善的 Copilot 指令** — 项目内置 `.github/copilot-instructions.md`，AI 助手可直接读取框架约定
+- **完善的 Agent 指令** — 项目内置 `AGENTS.md`，AI 助手可直接读取编码与测试约定
 
 ### 开箱即用
 

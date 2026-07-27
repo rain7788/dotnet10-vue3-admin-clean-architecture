@@ -12,7 +12,7 @@ Traditional framework problems:
 Art Admin's solutions:
 - **Consistent code patterns** — all Services use `[Service]`, all Routers implement `IAdminRouterBase`
 - **Explicit declarations** — `[Service(ServiceLifetime.Scoped)]` clearly states the lifecycle
-- **Copilot instructions** — `.github/copilot-instructions.md` with complete coding guidelines
+- **Agent instructions** — `AGENTS.md` with complete coding and testing guidelines
 - **Simple APIs** — Minimal API routing, `PredicateBuilder` queries, `throw new BadRequestException()`
 
 ## Convention over Configuration

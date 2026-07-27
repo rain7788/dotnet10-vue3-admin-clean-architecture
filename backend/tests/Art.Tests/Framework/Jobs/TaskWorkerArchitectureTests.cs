@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Art.Infra.Tests.Framework.Jobs;
+namespace Art.Tests.Framework.Jobs;
 
 public class TaskWorkerArchitectureTests
 {

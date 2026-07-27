@@ -22,8 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Art.Core\Art.Core.csproj" />
-    <ProjectReference Include="..\Art.Infra\Art.Infra.csproj" />
+    <ProjectReference Include="..\..\Art.Core\Art.Core.csproj" />
+    <ProjectReference Include="..\..\Art.Infra\Art.Infra.csproj" />
   </ItemGroup>
 
 </Project>

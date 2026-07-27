@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using Scheduler = Art.Infra.Framework.Jobs.TaskScheduler;
 
-namespace Art.Infra.Tests.Framework.Jobs;
+namespace Art.Tests.Framework.Jobs;
 
 public class TaskSchedulerTests
 {
