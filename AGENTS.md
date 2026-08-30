@@ -1,43 +1,40 @@
 # Art Admin Repository Instructions
 
-本文件适用于整个仓库。进入子目录工作时，还必须读取并遵循距离目标文件最近的 `AGENTS.md`；子目录规则补充或覆盖本文件中的领域规则。
+本文件适用于整个仓库；进入子目录后同时遵循距离目标文件最近的 `AGENTS.md`。
 
-## 目录与规则
+## 工作方式
 
-| 路径 | 职责 | 领域规则 |
+- 修改前先定位现有定义、调用点和同类生产实现，不猜测 API、类型、路径或依赖。
+- 已有公共组件、扩展方法、Service 或基础设施时必须复用；能力不足时优先扩展原实现并补测试，不新增职责重复的 Helper、封装或依赖。
+- 多种写法并存时，以目标目录最近的生产代码和子目录 `AGENTS.md` 中的推荐实现为准；Demo 只用于学习其明确演示的能力。
+- 改动保持在任务范围内，不夹带无关重构，不修改生成物或依赖目录，不写入真实凭据。
+
+## 目录规则
+
+| 路径 | 职责 | 规则 |
 | --- | --- | --- |
-| `backend/` | .NET 10 API、业务、领域和基础设施 | `backend/AGENTS.md` |
+| `backend/` | .NET API、业务和基础设施 | `backend/AGENTS.md` |
 | `web-admin/` | Vue 3 管理端 | `web-admin/AGENTS.md` |
 | `docs/` | VitePress 中英文文档 | `docs/AGENTS.md` |
-| `database/` | MySQL schema、seed 和增量迁移 | 本文件 |
-| `deploy/`、`.github/workflows/` | 容器、Kubernetes 和 CI/CD | 本文件 |
-
-## 通用原则
-
-- 修改前先搜索现有定义、调用点和相邻实现，不猜测 API、类型、路径或依赖。
-- 优先沿用已有架构和公共组件；不要在功能改动中夹带无关重构。
-- 行为变更和缺陷修复应同步增加或更新测试；测试必须验证外部可观察行为。
-- 不编辑或提交生成物与依赖目录，例如 `bin/`、`obj/`、`dist/`、`node_modules/`、覆盖率和测试结果。
-- 不在代码、文档、脚本或日志中写入密码、Token、私钥及真实生产凭据。
-- 修改公共契约时同步检查所有消费者，包括后端、前端、文档、数据库脚本和部署配置。
+| `database/` | MySQL schema、seed 和 migration | 本文件 |
+| `deploy/`、`.github/workflows/` | 部署和 CI/CD | 本文件 |
 
 ## 跨模块同步
 
-- 数据库结构变更必须同步 `database/schemas/`、`database/seeds/`（如涉及初始数据）和 `database/migrations/yyyyMMdd_desc.sql`；项目不使用外键约束。
-- 新增页面、菜单或权限时，必须在 `database/migrations/` 中提供对应的 `sys_menu` 增量记录。
-- API 路由、请求或响应模型变化时，同步更新 `web-admin/src/api/` 调用、相关 TypeScript 类型和中英文文档。
-- 面向用户的功能或配置说明发生变化时，保持 `docs/zh/` 与 `docs/en/` 对应内容一致。
+- 数据库结构变更同步 `database/schemas/`、相关 `database/seeds/` 和 `database/migrations/yyyyMMdd_desc.sql`；项目不使用外键。
+- 新增页面、菜单或权限时，在 migration 中增加对应 `sys_menu` 记录。
+- API 路由或模型变化时，同步后端、`web-admin/src/api/`、TypeScript 类型及中英文文档。
+- 用户可见功能或配置变化时，保持 `docs/zh/` 与 `docs/en/` 一致。
+- 行为变更和缺陷修复增加验证外部可观察行为的测试。
 
-## 验证要求
+## 验证
 
-从仓库根目录执行与改动相关的最小完整验证：
-
-| 改动范围 | 必须执行 |
+| 范围 | 最小完整验证 |
 | --- | --- |
 | 后端 | `dotnet test backend/Art.sln --configuration Release` |
-| 前端 TypeScript/Vue | `pnpm --dir web-admin exec vue-tsc --noEmit`、对改动文件执行 ESLint，并尽可能执行 `pnpm --dir web-admin build` |
+| 前端 | `pnpm --dir web-admin exec vue-tsc --noEmit`、改动文件 ESLint；生产代码尽可能执行 build |
 | 文档 | `pnpm --dir docs build` |
 | Docker | 构建对应 Dockerfile |
-| Workflow/YAML | 解析 YAML，并验证其中引用的脚本或命令 |
+| Workflow/YAML | 解析 YAML，并验证引用的脚本和命令 |
 
-不要为了通过验证而批量修复无关历史问题。验证被现有基线问题阻断时，交付说明中必须区分本次回归与既有问题，并明确剩余风险。
+不要为通过验证而批量修复历史问题；被基线问题阻断时，说明本次结果与剩余风险。

@@ -1,56 +1,47 @@
 # Web Admin Instructions
 
-本文件适用于 `web-admin/`。同时遵循仓库根目录 `AGENTS.md`。
+本文件适用于 `web-admin/`，同时遵循仓库根目录 `AGENTS.md`。
 
-## 技术栈与结构
+## 实现方式
 
-- Vue 3 `<script setup>`、Vite、Element Plus、Pinia、Tailwind CSS 4 和 Axios。
-- Vue/VueUse 常用 API 已自动导入；先检查现有配置，不重复添加 import。
-- 路径别名：`@` 指向 `src/`，`@views` 指向 `src/views/`。
-- 页面放在 `src/views/{module}/{page}/index.vue`，页面专用搜索、弹窗等组件放相邻 `modules/`。
-- 优先复用现有 Art 组件、composable、布局和交互模式，避免为单个页面复制基础设施。
+- 使用 Vue 3 `<script setup>`、Element Plus、Pinia、Tailwind CSS 4 和现有 Art 组件；先检查自动导入和路径别名，不重复配置。
+- 页面放 `src/views/{module}/{page}/index.vue`，搜索、弹窗等页面专用组件放相邻 `modules/`。
+- 开发前先阅读同类生产页面及其公共组件或 Hook；已有能力必须复用，不能为单个页面复制表格、表单、请求或状态基础设施。
+- 生产页面决定结构和业务流程；`views/examples/` 只用于查询组件能力，不整页照搬。
 
-## API 与错误处理
+## 管理页面基础设施
 
-- 所有后端调用封装在 `src/api/`，View 和组件不得直接创建 Axios 请求。
-- 使用 `@/utils/http` 的 `request`；列表查询调用 `request.post`，筛选和分页通过 `params` 传入。
-- API 函数采用 `fetch` + 动作 + 资源的命名方式，例如 `fetchGetUserList`、`fetchUpdateUser`。
-- 优先定义明确的请求和响应类型；只有在后端契约尚未稳定时才局部使用 `any`，不要扩散到公共类型。
-- HTTP 层已经统一展示失败信息；业务 `catch` 通常只恢复状态，不重复调用 `ElMessage.error`。
-- API 基础地址通过 `getApiUrl()`/HTTP 封装读取运行时配置，不在业务代码中硬编码域名或直接依赖生产环境变量。
+| 场景 | 必须使用 | 参考实现 |
+| --- | --- | --- |
+| 分页列表 | `useTable + ArtTableHeader + ArtTable` | `views/system/user/index.vue` |
+| 搜索条件 | `ArtSearchBar`、`useTable.searchParams` | `views/system/user/modules/user-search.vue` |
+| 树表/无分页表格 | `ArtTable + useTableColumns` | `views/system/menu/index.vue` |
+| 行操作 | `ArtButtonTable` 或 `ArtButtonMore` | `views/system/user/index.vue`、`views/system/role/index.vue` |
+| 普通 CRUD 弹窗 | `ElDialog + ElForm` | `views/system/role/modules/role-edit-dialog.vue` |
+| 配置驱动表单 | `ArtForm` | `views/system/menu/modules/menu-dialog.vue` |
+| 组件完整能力 | 现有组件和 Hook | `views/examples/tables/`、`views/examples/forms/` |
 
-## 路由、菜单与权限
+- 分页、加载、搜索参数和刷新由 `useTable` 管理；不要在页面重复实现。搜索时更新 `searchParams`，重置使用 `resetSearchParams`。
+- 表格列沿用 `columnsFactory`；操作按钮使用现有类型和图标，并通过 `v-auth` 或 `useAuth` 校验权限。
+- 字段较少或交互定制较强的表单沿用 `ElForm`；多字段、响应式配置表单使用 `ArtForm`。不要为了统一外观强行改写另一种成熟模式。
+- 表单覆盖初始化、校验、提交中、成功关闭、失败恢复和关闭后重置；异步状态在 `finally` 中可靠恢复。
+- 固定枚举放 `src/enums/`；后端枚举使用 `getEnumOptions()` / `getEnumLabel()`，不重复缓存或映射。
 
-- 菜单由后端 `sys_menu` 驱动。业务页面不要修改 `asyncRoutes.ts` 或 `routesAlias.ts`，除非任务明确涉及路由框架本身。
-- 新增页面或权限点时，同步提供数据库 migration 中的菜单/权限记录。
-- 按钮权限使用 `v-auth`，权限字符串必须与后端和 `sys_menu` 保持一致。
-- 表格操作优先使用 `ArtButtonTable` 已有的 `add`、`edit`、`delete`、`view`、`more` 类型及图标。
+## API 与契约
 
-## 页面与数据约定
+- 后端调用只放在 `src/api/`，使用 `@/utils/http` 的 `request`，View 和组件不直接创建请求。
+- API 函数使用 `fetch + 动作 + 资源` 命名；请求和响应定义明确类型并与后端字段一致，不用 `any` 掩盖契约差异。
+- HTTP 层已统一展示失败信息；业务 `catch` 只恢复本地状态，不重复显示通用错误。
+- API 地址通过 `getApiUrl()` 或 HTTP 封装读取，不硬编码域名。
 
-- 列表页面优先使用现有 `useTable` 模式；分页参数为 `pageIndex`、`pageSize`。
-- 固定枚举放在 `src/enums/`；后端动态枚举通过 `getEnumOptions()`/`getEnumLabel()` 获取，不重复实现缓存。
-- 加载、空数据、禁用、错误和提交中状态必须完整，异步操作结束时可靠恢复状态。
-- 修改公共组件时检查已有调用方，避免改变默认 props、事件或插槽语义。
+## 路由、菜单与样式
 
-## 样式与代码质量
-
-- 保持现有 art-design-pro 视觉和布局密度，不引入脱离当前设计系统的页面风格。
-- 优先使用已有设计 token 和工具类，不硬编码重复颜色、间距或层级值。
-- 避免无意义的 `any`、重复状态和可由 computed 派生的状态；复杂逻辑下沉到 composable 或模块组件。
+- 菜单由后端 `sys_menu` 驱动；业务页面不修改 `asyncRoutes.ts` 或 `routesAlias.ts`。新增页面或权限同步数据库 migration。
+- 保持 art-design-pro 的布局密度和交互，复用设计 token 和工具类，不引入独立页面风格或重复硬编码样式。
+- 修改公共组件时检查所有调用方，保持默认 props、事件和插槽语义。
 
 ## 验证
 
-从仓库根目录始终执行类型检查：
-
-```bash
-pnpm --dir web-admin exec vue-tsc --noEmit
-```
-
-对本次修改的 TypeScript、Vue 和 JavaScript 文件执行 ESLint，不要用全仓库自动修复清理无关历史格式问题：
-
-```bash
-pnpm --dir web-admin exec eslint <changed-files...>
-```
-
-涉及生产代码、Vite 配置、依赖或构建行为时还应执行 `pnpm --dir web-admin build`。如果完整构建或全量 lint 被既有基线问题阻断，保留错误证据并在交付说明中明确指出，不得将其误报为本次改动通过。
+- 始终运行 `pnpm --dir web-admin exec vue-tsc --noEmit`。
+- 对改动的 TypeScript、Vue、JavaScript 文件运行 `pnpm --dir web-admin exec eslint <changed-files...>`。
+- 涉及生产代码、Vite、依赖或构建行为时尽可能运行 `pnpm --dir web-admin build`；被基线问题阻断时保留证据并说明。
